@@ -146,6 +146,8 @@
   .subgroup{display:flex;align-items:center;gap:8px;margin:18px 0 9px;font-size:12px;font-weight:700;color:var(--accent-d);letter-spacing:.4px;}
   .subgroup::after{content:"";flex:1;height:1px;background:var(--line);}
   .subgroup:first-child{margin-top:2px;}
+  .use-head{display:flex;align-items:center;gap:6px;margin:11px 0 7px 1px;font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.5px;}
+  .use-head::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--accent);}
   .card{border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:.16s var(--ease);background:var(--surface);}
   .card:hover{border-color:var(--accent-l);box-shadow:var(--sh);}
   .card.picked{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-tint);}
@@ -236,7 +238,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.6.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.7.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -253,7 +255,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.6.0">v0.6.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.7.0">v0.7.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -501,29 +503,51 @@ function mkScenario(t,use,subs){
   const label=m?m[1].replace(/\n/g,'　'):'';
   let sub='';
   for(const s of subs){if(s&&(label.includes(s)||clean.slice(0,30).includes(s))){sub=s;break;}}
-  if(!sub&&subs.length===1)sub=subs[0];
+  if(!sub)sub=subs[0]||'其他';   // 未明確命中型態者歸入主型態（如肺腺癌第三線→非小細胞肺癌），避免孤兒卡
   // strip leading "label:" from body to avoid repeat
   let body=clean.replace(/\n+/g,'\n').trim();
   if(label){const re=new RegExp('^'+label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*[:：]?\\s*');body=body.replace(re,'').trim();}
-  return {kind:'scenario',label:label||trim1(clean).slice(0,36),use,sub:sub||'其他',text:body};
+  // 卡片顯示用短標題：去掉與型態分組標題重複的前綴、尾端單用/併用標記（避免雜訊）
+  let short=label;
+  if(sub&&sub!=='其他')short=short.split(sub).join('');
+  short=short.replace(/[（(](單用|併用化療|併用)[)）]\s*$/,'').replace(/^[·・:：、\s]+|[·・:：、\s]+$/g,'').trim();
+  if(!short)short=label;
+  return {kind:'scenario',label:label||trim1(clean).slice(0,36),short,use,sub:sub||'其他',text:body};
 }
 
 function renderCards(){
   const wrap=document.getElementById('cards');
-  if(!cur.cards.length){wrap.innerHTML='<div class="empty">此藥無細部給付條文，依藥品許可證適應症使用。</div>';}
-  else{
-    const groups={};cur.cards.forEach((c,i)=>{(groups[c.sub]=groups[c.sub]||[]).push(i);});
+  if(!cur.cards.length){
+    wrap.innerHTML='<div class="empty">此藥無細部給付條文，依藥品許可證適應症使用。</div>';
+  }else if(cur.cards[0].kind==='scenario'){
+    // 免疫藥：兩層分組 型態（subtitle）→ 單用/併用
+    const order=[],byType={};
+    cur.cards.forEach((c,i)=>{const t=c.sub||'其他';if(!byType[t]){byType[t]=[];order.push(t);}byType[t].push(i);});
     let html='';
-    Object.keys(groups).forEach(g=>{
-      if(g)html+=`<div class="subgroup">${esc(g)}</div>`;
-      groups[g].forEach(i=>{
-        const c=cur.cards[i];
-        const utag=c.use==='single'?'<span class="utag single">單用</span>':c.use==='combo'?'<span class="utag combo">併用</span>':'';
-        const top=c.kind==='scenario'
-          ? `<div class="card-top"><div class="card-title">${esc(c.label)}</div>${utag}</div><div class="clause-text">${fmtClause(c.text)}</div>`
-          : `<div class="card-top"><div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">適應症 ${i+1}</div></div><div class="clause-text">${fmtClause(c.text)}</div>`;
-        html+=`<div class="card${i===cur.picked?' picked':''}" onclick="pickCard(${i})">${top}<div class="card-cta">選這條送審 →</div></div>`;
+    order.forEach(t=>{
+      html+=`<div class="subgroup">${esc(t)}</div>`;
+      [['single','單用'],['combo','併用化療']].forEach(([u,ul])=>{
+        const items=byType[t].filter(i=>cur.cards[i].use===u);
+        if(!items.length)return;
+        html+=`<div class="use-head">${ul}</div>`;
+        items.forEach(i=>{
+          const c=cur.cards[i];
+          html+=`<div class="card${i===cur.picked?' picked':''}" onclick="pickCard(${i})">`
+            +`<div class="card-top"><div class="card-title">${esc(c.short||c.label)}</div></div>`
+            +`<div class="clause-text">${fmtClause(c.text)}</div>`
+            +`<div class="card-cta">選這條送審 →</div></div>`;
+        });
       });
+    });
+    wrap.innerHTML=html;
+  }else{
+    // 一般條文卡（標準 items / per_cancer clauses）：依序編號
+    let html='';
+    cur.cards.forEach((c,i)=>{
+      html+=`<div class="card${i===cur.picked?' picked':''}" onclick="pickCard(${i})">`
+        +`<div class="card-top"><div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">適應症 ${i+1}</div></div>`
+        +`<div class="clause-text">${fmtClause(c.text)}</div>`
+        +`<div class="card-cta">選這條送審 →</div></div>`;
     });
     wrap.innerHTML=html;
   }
