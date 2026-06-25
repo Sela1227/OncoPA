@@ -1,0 +1,11 @@
+<!-- 暫用佔位 PLACEHOLDER — 待 SELA 依 SELA-logo-prompt.md 以其他 AI 生成正式 logo 後，
+     回 Claude 走 Kit §10.2 四步轉檔，替換本檔與點陣套組。此非正式 logo。 -->
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#436f8a"/>
+  <rect x="56" y="56" width="400" height="400" rx="64" fill="none"
+        stroke="#ffffff" stroke-opacity="0.5" stroke-width="6" stroke-dasharray="20 16"/>
+  <text x="256" y="248" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="96" font-weight="700" fill="#ffffff">OncoPA</text>
+  <text x="256" y="324" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="40" fill="#ffffff" fill-opacity="0.7">logo 待置入</text>
+</svg>
