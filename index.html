@@ -196,6 +196,9 @@
   .checklist li.on{color:var(--ink-3);background:var(--surface);}
   .pcode{font-size:12px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:11px;line-height:1.85;white-space:pre-wrap;}
   .pcode b{color:var(--accent-d);font-weight:700;}
+  .cc-head{font-size:12px;font-weight:600;color:var(--ink-2);line-height:1.55;margin:12px 0 7px;}
+  #ccommon .cc-head:first-child{margin-top:0;}
+  #ccommon ul.checklist+.cc-head{margin-top:14px;}
   .notes-info{list-style:none;display:grid;gap:6px;}
   .notes-info li{font-size:12px;color:#7e5a1e;padding:9px 11px;background:var(--warn-bg);border-radius:var(--r-sm);line-height:1.6;}
   .disclaim{font-size:11px;color:var(--ink-3);margin-top:14px;line-height:1.65;border-top:1px solid var(--line-2);padding-top:11px;}
@@ -245,7 +248,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.10.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.11.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -262,7 +265,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.10.0">v0.10.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.11.0">v0.11.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -478,20 +481,21 @@ function setDrugCancer(gi,c){cur.cancer=c;cur.drug=DRUGS[gi];buildCards();}
 
 function getSlice(){const d=cur.drug,c=cur.cancer;if(d.per_cancer&&d.per_cancer[c])return d.per_cancer[c];return null;}
 function normClause(c){return (typeof c==='string')?{header:c,subitems:[]}:(c||{header:'',subitems:[]});}
+function commonGroups(d){return (d.common_data||[]).map(c=>{const nc=normClause(c);const subs=(nc.subitems||[]).map(si=>typeof si==='string'?si:((si.num?si.num+' ':'')+(si.text||si.header||'')));return subs.length?{head:nc.header||'',items:subs}:{head:'',items:[nc.header||String(c)]};});}
 function clauseText(c){c=normClause(c);let t=(c.header||'');(c.subitems||[]).forEach(s=>{t+='\n'+(s.num?s.num+' ':'')+(s.text||'');});return t.trim();}
 
 function buildCards(){
-  const d=cur.drug; cur.cards=[]; cur.common=[]; cur.pcode=''; cur.notes=[]; cur.picked=null; cur.open=0; cur.checks={};
+  const d=cur.drug; cur.cards=[]; cur.common=[]; cur.commonG=[]; cur.pcode=''; cur.notes=[]; cur.picked=null; cur.open=0; cur.checks={}; cur.cchecks={};
   const slice=getSlice();
   if(slice&&(slice.single_use||slice.combo_use)){
     cur.pcode=slice.pdl1||''; cur.notes=slice.notes||[];
     const subs=slice.subtitles&&slice.subtitles.length?slice.subtitles:[''];
     (slice.single_use||[]).forEach(t=>{if(t)cur.cards.push(mkScenario(t,'single',subs));});
     (slice.combo_use||[]).forEach(t=>{if(t)cur.cards.push(mkScenario(t,'combo',subs));});
-    cur.common=(d.common_data||[]).map(c=>clauseText(c));
+    cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
   }else if(slice&&slice.clauses){
     slice.clauses.forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c)}));
-    cur.common=(d.common_data||[]).map(c=>clauseText(c));
+    cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
   }else{
     (d.items||[]).forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c)}));
   }
@@ -605,7 +609,14 @@ function renderPrep(){
   h+=`<div class="rblk"><h4>要備齊的資料</h4><ul class="checklist" id="chk">${
     docs.map((x,i)=>`<li class="${cur.checks[i]?'on':''}" onclick="toggleChk(${i})"><span class="box">${cur.checks[i]?'✓':''}</span><span>${esc(x)}</span></li>`).join('')
   }</ul></div>`;
-  if(cur.common.length)h+=`<div class="rblk"><h4>別忘了共通規定</h4><ul class="notes-info">${cur.common.map(t=>`<li>${esc(t).replace(/\n/g,'<br>')}</li>`).join('')}</ul></div>`;
+  if(cur.commonG.length){
+    h+=`<div class="rblk"><h4>別忘了共通規定（逐項確認）</h4><div id="ccommon">`;
+    cur.commonG.forEach((g,gi)=>{
+      if(g.head)h+=`<div class="cc-head">${esc(g.head).replace(/\n/g,'<br>')}</div>`;
+      h+=`<ul class="checklist">`+g.items.map((t,ii)=>{const id='g'+gi+'i'+ii;return `<li class="${cur.cchecks[id]?'on':''}" data-ci="${id}" onclick="toggleCommon(\'${id}\')"><span class="box">${cur.cchecks[id]?'✓':''}</span><span>${esc(t).replace(/\n/g,'<br>')}</span></li>`;}).join('')+`</ul>`;
+    });
+    h+=`</div></div>`;
+  }
   h+=`<div class="btn-row">
       <button class="btn ghost sm" onclick="window.print()">列印準備單</button>
       <button class="btn ghost sm" onclick="changeClause()">換一條</button>
@@ -615,6 +626,7 @@ function renderPrep(){
   body.innerHTML=h;
 }
 function toggleChk(i){cur.checks[i]=!cur.checks[i];const el=document.querySelectorAll('#chk li')[i];el.classList.toggle('on');el.querySelector('.box').textContent=cur.checks[i]?'✓':'';}
+function toggleCommon(id){cur.cchecks[id]=!cur.cchecks[id];const el=document.querySelector('#ccommon li[data-ci="'+id+'"]');if(el){el.classList.toggle('on');el.querySelector('.box').textContent=cur.cchecks[id]?'✓':'';}}
 
 function copyText(btn){
   const c=cur.cards[cur.picked],d=cur.drug;
@@ -627,7 +639,7 @@ function fallbackCopy(t,btn){const ta=document.createElement('textarea');ta.valu
 function flash(btn){if(!btn)return;const o=btn.textContent;btn.textContent='已複製 ✓';setTimeout(()=>btn.textContent=o,1400);}
 
 function resetAll(){
-  cur={drug:null,cancer:null,cards:[],common:[],pcode:'',notes:[],picked:null,checks:{},entry:'cancer',type:'全部',screen:'find'};
+  cur={drug:null,cancer:null,cards:[],common:[],commonG:[],pcode:'',notes:[],picked:null,checks:{},cchecks:{},entry:'cancer',type:'全部',screen:'find'};
   document.getElementById('scr-clauses').classList.remove('detail-open');
   go('find');
 }
