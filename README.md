@@ -1,7 +1,7 @@
 <div align="center">
   <img src="favicon/app-logo.svg" width="120" alt="OncoPA"/>
   <h1>OncoPA</h1>
-  <p>癌藥事審・送審準備 ── 協助個管師快速找對給付條文、複製、備齊送審資料</p>
+  <p>彰濱秀傳癌症中心 癌藥事審輔助系統 ── 協助個管師快速找對給付條文、複製、備齊送審資料</p>
 </div>
 
 ---
