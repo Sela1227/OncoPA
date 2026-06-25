@@ -159,7 +159,13 @@
   .utag.combo{background:#ece1da;color:var(--immuno);}
   .clause-text{font-size:13px;color:var(--ink-2);line-height:1.72;white-space:pre-wrap;}
   .clause-no{display:inline-block;min-width:18px;color:var(--accent-d);font-weight:700;}
-  .card-cta{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:9px;color:var(--accent);font-size:12.5px;font-weight:700;}
+  .card-cta{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:9px;color:var(--accent);font-size:12.5px;font-weight:700;cursor:pointer;}
+  .chev{flex-shrink:0;width:15px;height:15px;color:var(--ink-3);transition:transform .18s var(--ease);}
+  .card.open .chev{transform:rotate(90deg);color:var(--accent);}
+  .card-top{margin-bottom:0;}
+  .card.open>.card-top{margin-bottom:9px;}
+  .card-body{display:none;}
+  .card.open>.card-body{display:block;}
 
   .common-ref{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);padding:14px;background:var(--surface-2);}
   .common-ref h3{font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:9px;display:flex;gap:7px;align-items:center;}
@@ -238,7 +244,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.7.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.8.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -255,7 +261,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.7.0">v0.7.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.8.0">v0.8.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -475,7 +481,7 @@ function normClause(c){return (typeof c==='string')?{header:c,subitems:[]}:(c||{
 function clauseText(c){c=normClause(c);let t=(c.header||'');(c.subitems||[]).forEach(s=>{t+='\n'+(s.num?s.num+' ':'')+(s.text||'');});return t.trim();}
 
 function buildCards(){
-  const d=cur.drug; cur.cards=[]; cur.common=[]; cur.pcode=''; cur.notes=[]; cur.picked=null; cur.checks={};
+  const d=cur.drug; cur.cards=[]; cur.common=[]; cur.pcode=''; cur.notes=[]; cur.picked=null; cur.open=0; cur.checks={};
   const slice=getSlice();
   if(slice&&(slice.single_use||slice.combo_use)){
     cur.pcode=slice.pdl1||''; cur.notes=slice.notes||[];
@@ -517,10 +523,15 @@ function mkScenario(t,use,subs){
 
 function renderCards(){
   const wrap=document.getElementById('cards');
+  const chev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  const card=(i,head)=>`<div class="card${i===cur.open?' open':''}${i===cur.picked?' picked':''}">`
+      +`<div class="card-top" onclick="toggleCard(${i})">${head}${chev}</div>`
+      +`<div class="card-body"><div class="clause-text">${fmtClause(cur.cards[i].text)}</div>`
+      +`<div class="card-cta" onclick="event.stopPropagation();pickCard(${i})">選這條送審 →</div></div></div>`;
   if(!cur.cards.length){
     wrap.innerHTML='<div class="empty">此藥無細部給付條文，依藥品許可證適應症使用。</div>';
   }else if(cur.cards[0].kind==='scenario'){
-    // 免疫藥：兩層分組 型態（subtitle）→ 單用/併用
+    // 免疫藥：兩層分組 型態（subtitle）→ 單用/併用；卡片可收合
     const order=[],byType={};
     cur.cards.forEach((c,i)=>{const t=c.sub||'其他';if(!byType[t]){byType[t]=[];order.push(t);}byType[t].push(i);});
     let html='';
@@ -530,25 +541,14 @@ function renderCards(){
         const items=byType[t].filter(i=>cur.cards[i].use===u);
         if(!items.length)return;
         html+=`<div class="use-head">${ul}</div>`;
-        items.forEach(i=>{
-          const c=cur.cards[i];
-          html+=`<div class="card${i===cur.picked?' picked':''}" onclick="pickCard(${i})">`
-            +`<div class="card-top"><div class="card-title">${esc(c.short||c.label)}</div></div>`
-            +`<div class="clause-text">${fmtClause(c.text)}</div>`
-            +`<div class="card-cta">選這條送審 →</div></div>`;
-        });
+        items.forEach(i=>{html+=card(i,`<div class="card-title">${esc(cur.cards[i].short||cur.cards[i].label)}</div>`);});
       });
     });
     wrap.innerHTML=html;
   }else{
-    // 一般條文卡（標準 items / per_cancer clauses）：依序編號
+    // 一般條文卡（標準 items / per_cancer clauses）：依序編號、可收合
     let html='';
-    cur.cards.forEach((c,i)=>{
-      html+=`<div class="card${i===cur.picked?' picked':''}" onclick="pickCard(${i})">`
-        +`<div class="card-top"><div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">適應症 ${i+1}</div></div>`
-        +`<div class="clause-text">${fmtClause(c.text)}</div>`
-        +`<div class="card-cta">選這條送審 →</div></div>`;
-    });
+    cur.cards.forEach((c,i)=>{html+=card(i,`<div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">適應症 ${i+1}</div>`);});
     wrap.innerHTML=html;
   }
   // common reference
@@ -558,10 +558,11 @@ function renderCards(){
       cur.common.map(t=>`<li>${esc(t).replace(/\n/g,'<br>')}</li>`).join('')}</ul></div>`;
   }else cr.innerHTML='';
 }
+function toggleCard(i){cur.open=(cur.open===i?-1:i);renderCards();}
 function fmtClause(t){return esc(t).replace(/^(\d+[\.、])/gm,'<span class="clause-no">$1</span>').replace(/\n/g,'<br>');}
 
 function pickCard(i){
-  cur.picked=i;cur.checks={};
+  cur.picked=i;cur.open=i;cur.checks={};
   renderCards();renderPrep();
   if(!isDesktop()){document.getElementById('scr-clauses').classList.add('detail-open');scrollTop();}
   setStepper();
@@ -592,9 +593,6 @@ function renderPrep(){
   const title=c.kind==='scenario'?c.label:('適應症 '+(cur.picked+1));
   let h=`<div class="prep-body">`;
   h+=`<div class="sel-clause">${esc(title)}${c.use==='single'?'（單用）':c.use==='combo'?'（併用）':''}<span class="txt">${fmtClause(c.text)}</span></div>`;
-  h+= d.pre_review
-    ? `<div class="pr-box yes"><span class="ic">!</span><div><b>需事前審查</b>　核准後始得使用${d.form_no?'　·　表單 <b>'+esc(d.form_no)+'</b>':''}</div></div>`
-    : `<div class="pr-box no"><span class="ic">✓</span><div>免事前審查　病歷記載符合事由即可開立</div></div>`;
   h+=`<button class="btn primary block" onclick="copyText(this)">複製條文（貼到送審單）</button>`;
   if(cur.pcode){
     h+=`<div class="rblk"><h4>PD-L1／事審碼對照（${esc(cur.cancer)}）</h4>
