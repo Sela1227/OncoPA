@@ -37,7 +37,7 @@ python -m http.server 8000
 OncoPA/
 ├── index.html              工具本體（含內嵌藥物資料）
 ├── favicon/
-│   ├── app-logo.svg        OncoPA app logo（主視覺）
+│   ├── app-logo.png        OncoPA 正式 app logo（主視覺）
 │   ├── favicon.* / *.png   app logo 點陣套組
 │   ├── site.webmanifest
 │   └── sela.svg            SELA 品牌歸屬（footer 角標用）
@@ -50,11 +50,11 @@ OncoPA/
 
 ## 版本
 
-V0.2.0（資料 115.5.22）
+V0.3.0（資料 115.5.22）
 
 ---
 
 <div align="center">
   <img src="favicon/sela.svg" width="56" alt="SELA"/>
-  <p><sub>Made by <b>SELA</b> · V0.2.0</sub></p>
+  <p><sub>Made by <b>SELA</b> · V0.3.0</sub></p>
 </div>

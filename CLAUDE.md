@@ -8,12 +8,12 @@
 
 ## 〇、當前狀態
 
-- **版本：** V0.2.0（雛型階段；版本號自 V0.2.0 重新定基，不沿用先前對話中的 V1.x 編號）
+- **版本：** V0.3.0（雛型階段；版本號自 V0.2.0 重新定基）
 - **英文名／識別：** **OncoPA**（Onco + Prior-Authorization）
 - **命名（雙語）：** 資料夾／zip 檔名用英文 `OncoPA`（Kit 英文名鐵律）；**程式內顯示維持中文「癌藥事審・送審準備」**（SELA 指定）。下個 Claude 別「好心」把顯示改成英文。
 - **三層目標歸屬：** 醫院發展（院內個管事審作業工具）為主；非對外分享、非純個人。
 - **版本獨立：** 本工具版本自成一軌，**不對齊母程式（V4.x）**，亦不對齊 Kit 版本
-- **app logo：** 走雙 logo 制（見第十節）；正式 logo **待生成**（`SELA-logo-prompt.md` 已備），目前為暫用佔位
+- **app logo：** 走雙 logo 制（見第十節）；**正式 logo 已置入**（Gemini 依 `SELA-logo-prompt.md` 生成、Claude 走 §10.2 四步轉檔）。logo 文字為「CB Show」
 - **狀態：** 獨立純靜態工具，功能完整、已對齊 SELA Kit
 - **一句話定位：** 醫師已決定送審某抗癌藥時，協助個管師「找對給付條文 → 複製 → 備齊送審資料」的速查工具。
 - **技術棧：** 純 HTML + CSS + 原生 JS（單檔、無框架、無 build step）
@@ -108,7 +108,8 @@ python -m http.server 8000   # 開 http://localhost:8000
 | 版本 | 重點 |
 |------|------|
 | V0.1.0 | 初版骨架；由「資格判定」改向「送審資料準備」四頁式、條文卡、免疫子分型拆解、通用條款抽離 |
-| V0.2.0 | 只收需事審藥（103 支）、類型篩選；對齊 SELA Kit（favicon／`data-*`／獨立化）；雙 logo 制結構（app logo 暫用佔位、待 `SELA-logo-prompt.md` 生成）；英文名 OncoPA；登入頁加子 logo；移除「填寫事審申請表（表單未指定）」項；**版本號重定基準** |
+| V0.2.0 | 只收需事審藥（103 支）、類型篩選；對齊 SELA Kit；雙 logo 制結構；英文名 OncoPA；資料夾/zip 英文化；版本號重定基準 |
+| V0.3.0 | 置入正式 app logo（Gemini 生成 + §10.2 轉檔）；程式名旁加版本徽章；SELA 主 logo 顯示於登入頁與頁尾 |
 
 > 先前對話迭代曾用 V1.x 內部編號，現重定基為 V0.2.0（雛型階段）。超過 10 版砍最舊的，搬到 README.md。
 
@@ -116,7 +117,7 @@ python -m http.server 8000   # 開 http://localhost:8000
 
 ## 七、下版候選工作（按優先序）
 
-1. **更新資料流程驗證** — 下次母程式改版時，實走一次第八節流程確認順暢（這是維護命脈）
+1. **更新資料流程驗證** — 下次母程式改版時實走第八節流程（維護命脈）
 2. 肺腺癌等子型字串未對到 `subtitles`，目前歸「其他」→ 建子型對應表歸入非小細胞肺癌
 3. P 碼／PD-L1 由「全表自選」升級為情境↔P 碼可信配對（保留全表兜底）
 4. `form_no` 待母程式補齊後自動帶入（無需改本工具）
@@ -140,14 +141,14 @@ NHI 條文更新時：
 
 ## 九、一句話總結
 
-V0.2.0（雛型）：功能完整的獨立事審送審準備工具 OncoPA，已對齊 SELA Kit、雙 logo 制結構就位（正式 app logo 待依 `SELA-logo-prompt.md` 生成）。版本自成一軌、不對齊母程式。下版第一優先是「置入正式 app logo」與「下次母程式改版時實走資料更新流程」。
+V0.3.0（雛型）：功能完整的獨立事審送審準備工具 OncoPA，已對齊 SELA Kit、正式 app logo 已置入、雙 logo 制完成。版本自成一軌、不對齊母程式。下版第一優先是「下次母程式改版時實走資料更新流程」。
 
 ---
 
 ## 十、雙 logo 制（SELA Kit §8-9、§17）
 
-- **App logo（主視覺）：** `favicon/app-logo.svg` 目前為**暫用佔位**（標「logo 待置入」）。正式 logo 走 Kit 工作流 B：SELA 依 `SELA-logo-prompt.md` 用其他 AI 生圖 → 回 Claude 走 §10.2 四步轉檔（取底色→四角 floodfill→滿版方形→圓角交顯示端）→ 生多解析度套組替換。
+- **App logo（主視覺）：** `favicon/app-logo.png`（512²，正式 logo）＋ `app-logo-master.png`（滿版方形母圖）。由 Gemini 依 `SELA-logo-prompt.md` 生成，Claude 走 §10.2 四步轉檔（取底色 #446e86 → sentinel floodfill 去白底+鋸齒環 → 純底色合成白 glyph → 生 16/32/180/192/512 + ico）。**重生方式：** 換新圖重跑 favicon/ 內處理腳本即可。logo 為點陣（含文字「CB Show」），無 SVG 版。
 - **logo prompt：** `SELA-logo-prompt.md`（根目錄，範本 B 醫療型、北歐霧藍 #436f8a、壁虎 not a natural fit）。
 - **SELA logo（品牌歸屬）：** footer 角標 `.sela-credit`，引用**獨立**的 `favicon/sela.svg`（不重用 favicon 引用）。
-- **出現位置：** 登入頁、topbar、favicon、手機捷徑皆為 app logo；SELA 僅 footer。
+- **出現位置：** 登入頁、topbar、favicon、手機捷徑皆為 app logo；**SELA 主 logo 顯示於登入頁底部 + 頁尾 footer**（30px + 標籤，明確但仍為輔助）。
 - **配色不撞：** app 北歐霧藍 vs SELA 橘，不同色。manifest `theme_color`/`icons` 用 app 自己的（#2c4f66 + app logo）。
