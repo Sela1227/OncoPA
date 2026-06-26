@@ -248,7 +248,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.12.1</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.13.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -265,7 +265,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.12.1">v0.12.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.13.0">v0.13.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -515,10 +515,31 @@ function clauseTitle(c){
   return clip(t,28)||'適應症';
 }
 function clauseText(c){c=normClause(c);let t=(c.header||'');(c.subitems||[]).forEach(s=>{t+='\n'+(s.num?s.num+' ':'')+(s.text||'');});return t.trim();}
+// 判別「通用規定/敘述」而非可選送審適應症：事前審查程序、純劑量、通則十二引用、純療程上限
+function isAdminClause(c){
+  const hd=(c.header||'').trim();
+  const full=hd+' '+((c.subitems||[]).map(si=>si.text||'').join(' '));
+  const IND=/適用於|用於治療|用於[^。]*(?:第[一二三四]線|患者|病人|成人)|做為|作為|與[^。]{1,30}?(?:併用|合併使用)|單獨使用於|限[^。]{0,8}用於|第[一二三四]線治療|治療[^。]{0,30}(?:癌|瘤|白血病|淋巴瘤|骨髓瘤)/;
+  if(/^(?:需|須|經)\s*經?\s*事前(?:專案)?審查核?准?(?:後|以)?使用[：:。，]?\s*$/.test(hd))return true;
+  if(/^(?:需|須|經)\s*經?\s*事前(?:專案)?審查/.test(hd)&&!IND.test(full))return true;
+  if(/^經事前審查核准後使用/.test(hd)&&!IND.test(full))return true;
+  if(/^(?:限)?每日(?:最大)?劑量|^每日限用|^限每日(?:最大)?劑量|^每日至多處方/.test(hd))return true;
+  if(/通則十二/.test(hd)&&/項規定/.test(hd))return true;
+  if(/^每人(?:終生)?(?:至多)?.{0,8}療程.{0,6}上限/.test(hd))return true;
+  return false;
+}
+// 將條文轉成可勾選的共通規定分組（同 commonGroups 形狀）
+function clauseToGroup(c){const nc=normClause(c);const subs=(nc.subitems||[]).map(si=>typeof si==='string'?si:((si.num?si.num+' ':'')+(si.text||si.header||'')));return subs.length?{head:nc.header||'',items:subs}:{head:'',items:[nc.header||'']};}
 
 function buildCards(){
   const d=cur.drug; cur.cards=[]; cur.common=[]; cur.commonG=[]; cur.pcode=''; cur.notes=[]; cur.picked=null; cur.open=0; cur.checks={}; cur.cchecks={};
   const slice=getSlice();
+  // 路由：劑型標記→非點選分隔；通用規定→共通規定可勾選區；其餘→可選適應症卡
+  const routeClause=(c)=>{
+    if(c._is_source_marker){cur.cards.push({kind:'marker',text:'',title:(c.header||'').replace(/[【】]/g,'').trim()});return;}
+    if(isAdminClause(c)){const t=clauseText(c);if(cur.common.indexOf(t)<0){cur.common.push(t);cur.commonG.push(clauseToGroup(c));}return;}
+    cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c),title:clauseTitle(c)});
+  };
   if(slice&&(slice.single_use||slice.combo_use)){
     cur.pcode=slice.pdl1||''; cur.notes=slice.notes||[];
     const subs=slice.subtitles&&slice.subtitles.length?slice.subtitles:[''];
@@ -526,10 +547,11 @@ function buildCards(){
     (slice.combo_use||[]).forEach(t=>{if(t)cur.cards.push(mkScenario(t,'combo',subs));});
     cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
   }else if(slice&&slice.clauses){
-    slice.clauses.forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c),title:clauseTitle(c)}));
     cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
+    slice.clauses.forEach(routeClause);
   }else{
-    (d.items||[]).forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c),title:clauseTitle(c)}));
+    cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
+    (d.items||[]).forEach(routeClause);
   }
   renderCards();
   document.getElementById('selDrug').innerHTML=`<span class="nm">${esc(d.name)}</span><span class="meta">${d.num}${cur.cancer?' · '+esc(cur.cancer):''} · ${d.pre_review?'需事審'+(d.form_no?' '+esc(d.form_no):''):'免事審'}</span>`;
@@ -582,9 +604,13 @@ function renderCards(){
     });
     wrap.innerHTML=html;
   }else{
-    // 一般條文卡（標準 items / per_cancer clauses）：依序編號、可收合
-    let html='';
-    cur.cards.forEach((c,i)=>{html+=card(i,`<div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">${esc(c.title||('適應症 '+(i+1)))}</div>`);});
+    // 一般條文卡：劑型標記顯示為分隔標題（非點選），其餘依序編號、可收合
+    let html='';let n=0;
+    cur.cards.forEach((c,i)=>{
+      if(c.kind==='marker'){html+=`<div class="subgroup">${esc(c.title)}</div>`;return;}
+      n++;
+      html+=card(i,`<div class="card-no">${n}</div><div class="card-title" style="font-weight:600">${esc(c.title||('適應症 '+n))}</div>`);
+    });
     wrap.innerHTML=html;
   }
   // common reference
