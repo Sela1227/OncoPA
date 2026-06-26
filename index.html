@@ -248,7 +248,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.12.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.12.1</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -265,7 +265,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.12.0">v0.12.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.12.1">v0.12.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -662,8 +662,11 @@ function toggleCommon(id){cur.cchecks[id]=!cur.cchecks[id];const el=document.que
 
 function copyText(btn){
   const c=cur.cards[cur.picked],d=cur.drug;
-  const title=c.kind==='scenario'?c.label:(c.title||('適應症 '+(cur.picked+1)));
-  let t=`${d.name}（${d.num}）${cur.cancer?'　'+cur.cancer:''}\n${title}\n${c.text}`;
+  // 送審內容只輸出「藥名（編號）癌別 + 原始條文」。
+  // 收合卡的萃取標題僅供畫面辨識，絕不進入複製內容（避免 AI 文字混入送審單）。
+  // 免疫情境卡的 c.label 來自母程式原文 **標記**（非萃取），且 c.text 已去標籤，故保留之。
+  const lbl=(c.kind==='scenario'&&c.label)?('\n'+c.label):'';
+  let t=`${d.name}（${d.num}）${cur.cancer?'　'+cur.cancer:''}${lbl}\n${c.text}`;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>flash(btn)).catch(()=>fallbackCopy(t,btn));}
   else fallbackCopy(t,btn);
 }
