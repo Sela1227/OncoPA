@@ -248,7 +248,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.11.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.12.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -265,7 +265,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.11.0">v0.11.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.12.0">v0.12.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.5.22" data-section="9">資料 115.5.22 · 健保第 9 節</div>
     </div>
   </div>
@@ -482,6 +482,38 @@ function setDrugCancer(gi,c){cur.cancer=c;cur.drug=DRUGS[gi];buildCards();}
 function getSlice(){const d=cur.drug,c=cur.cancer;if(d.per_cancer&&d.per_cancer[c])return d.per_cancer[c];return null;}
 function normClause(c){return (typeof c==='string')?{header:c,subitems:[]}:(c||{header:'',subitems:[]});}
 function commonGroups(d){return (d.common_data||[]).map(c=>{const nc=normClause(c);const subs=(nc.subitems||[]).map(si=>typeof si==='string'?si:((si.num?si.num+' ':'')+(si.text||si.header||'')));return subs.length?{head:nc.header||'',items:subs}:{head:'',items:[nc.header||String(c)]};});}
+function clauseTitle(c){
+  let hd=(c.header||'').replace(/\u3000/g,' ').replace(/\s+/g,' ').trim();
+  hd=hd.replace(/[（(](?:\d{2,3}\/\d{1,2}\/\d{1,2}[、,，\s]*)+[)）]/g,'');
+  const dn=(cur.drug&&cur.drug.name)||'';
+  if(dn){const re=new RegExp('^'+dn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*(?:[（(][^）)]*[)）])?\\s*');hd=hd.replace(re,'').trim();}
+  const clip=(s,n)=>{s=(s||'').trim();if(s.length<=n)return s;let cut=s.slice(0,n);const p=cut.lastIndexOf('、');if(p>=n-6)cut=cut.slice(0,p);return cut+'…';};
+  let m=hd.match(/^(.{1,28}?)(?:治療部分|部分)\s*[：:]/);
+  if(m)return clip(m[1],24);
+  if(/[：:]\s*$/.test(hd)&&hd.length<=26&&!/與|併用|合併|單獨使用|適用於|用於|符合|核准/.test(hd))return clip(hd.replace(/[：:]\s*$/,''),24);
+  if(/^(?:經|需|須)?\s*經?\s*事前審查核?准?/.test(hd))return '事前審查共通規定';
+  const subs=(c.subitems||[]).map(si=>si.text||'').join(' ');
+  const full=hd+' '+subs;
+  // 排除語境（不得與X / 除…以外 / 禁勿與X）剝掉，避免抓到被排除藥名
+  const hdc=hd.replace(/不得與[^，。；]*/g,'').replace(/除[^，。；]*?(?:以外|外)/g,'').replace(/[禁勿]與[^，。；]*/g,'').replace(/(?:作為|用於)?(?:先前|曾經?|已)(?:接受過|使用過|施以|用過)[^。]*?(?:無效|失敗|惡化|進展|治療後|之後)/g,'');
+  // 開頭動詞剝除讓疾病名浮現
+  const head2=hd.replace(/^(?:(?:本藥品?|本品)?\s*(?:用於|使用於|限用於|限|適用於|適用|做為|作為|治療|給予)\s*){1,3}/,'');
+  let lead=((head2.match(/^([\u4e00-\u9fffA-Za-z0-9（）()+\-]{2,18}?(?:癌|瘤|血症|白血病|淋巴瘤|骨髓瘤|病|症))/)||[])[1])||'';
+  if(/適應症|^(?:下列|本|該|此|其|前述|上述)|病人$|病患$/.test(lead)||lead.length<3)lead='';
+  const line=(full.match(/第[一二三四]線|[二三四]線以上|維持性?治療|術後輔助(?:治療)?|術前輔助(?:治療)?|前導性(?:治療)?|初期診斷|初診斷|急性轉化期|加速期|復發性|難治性|復發|難治/)||[])[0]||'';
+  let reg='';
+  const rm=hdc.split('。')[0].match(/(?:與|合併|併用)\s*(放射線療法|含[^，。、）)]{2,14}?(?:化療|療法)|[A-Za-z][A-Za-z0-9\-]+(?:\s*\/\s*[A-Za-z][A-Za-z0-9\-]+)*)/);
+  if(rm)reg=rm[1].replace(/\s+/g,'');
+  const bio=(full.match(/BRAF\s*V600E|EGFR\s*T790M|EGFR|RAS\s*原生型|wild[\- ]?type|HER\s*-?2|PD-?L1|Ph\+|BRCA[12\/]*/)||[])[0]||'';
+  let parts=[];
+  if(lead)parts.push(lead);
+  if(line&&(!lead||lead.indexOf(line)<0))parts.push(line);
+  if(reg&&(!lead||lead.indexOf(reg)<0))parts.push(reg);
+  let t=parts.join(' · ');
+  if(bio)t=t?(t+'（'+bio+'）'):bio;
+  if(!t||t.length<2)t=clip(head2||hd,22);
+  return clip(t,28)||'適應症';
+}
 function clauseText(c){c=normClause(c);let t=(c.header||'');(c.subitems||[]).forEach(s=>{t+='\n'+(s.num?s.num+' ':'')+(s.text||'');});return t.trim();}
 
 function buildCards(){
@@ -494,10 +526,10 @@ function buildCards(){
     (slice.combo_use||[]).forEach(t=>{if(t)cur.cards.push(mkScenario(t,'combo',subs));});
     cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
   }else if(slice&&slice.clauses){
-    slice.clauses.forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c)}));
+    slice.clauses.forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c),title:clauseTitle(c)}));
     cur.common=(d.common_data||[]).map(c=>clauseText(c)); cur.commonG=commonGroups(d);
   }else{
-    (d.items||[]).forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c)}));
+    (d.items||[]).forEach(c=>cur.cards.push({kind:'clause',label:'',use:'',sub:'',text:clauseText(c),title:clauseTitle(c)}));
   }
   renderCards();
   document.getElementById('selDrug').innerHTML=`<span class="nm">${esc(d.name)}</span><span class="meta">${d.num}${cur.cancer?' · '+esc(cur.cancer):''} · ${d.pre_review?'需事審'+(d.form_no?' '+esc(d.form_no):''):'免事審'}</span>`;
@@ -552,7 +584,7 @@ function renderCards(){
   }else{
     // 一般條文卡（標準 items / per_cancer clauses）：依序編號、可收合
     let html='';
-    cur.cards.forEach((c,i)=>{html+=card(i,`<div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">適應症 ${i+1}</div>`);});
+    cur.cards.forEach((c,i)=>{html+=card(i,`<div class="card-no">${i+1}</div><div class="card-title" style="font-weight:600">${esc(c.title||('適應症 '+(i+1)))}</div>`);});
     wrap.innerHTML=html;
   }
   // common reference
@@ -594,7 +626,7 @@ function renderPrep(){
     return;
   }
   const c=cur.cards[cur.picked],d=cur.drug;
-  const title=c.kind==='scenario'?c.label:('適應症 '+(cur.picked+1));
+  const title=c.kind==='scenario'?c.label:(c.title||('適應症 '+(cur.picked+1)));
   let h=`<div class="prep-body">`;
   h+=`<div class="sel-clause">${esc(title)}${c.use==='single'?'（單用）':c.use==='combo'?'（併用）':''}<span class="txt">${fmtClause(c.text)}</span></div>`;
   h+=`<button class="btn primary block" onclick="copyText(this)">複製條文（貼到送審單）</button>`;
@@ -630,7 +662,7 @@ function toggleCommon(id){cur.cchecks[id]=!cur.cchecks[id];const el=document.que
 
 function copyText(btn){
   const c=cur.cards[cur.picked],d=cur.drug;
-  const title=c.kind==='scenario'?c.label:('適應症 '+(cur.picked+1));
+  const title=c.kind==='scenario'?c.label:(c.title||('適應症 '+(cur.picked+1)));
   let t=`${d.name}（${d.num}）${cur.cancer?'　'+cur.cancer:''}\n${title}\n${c.text}`;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>flash(btn)).catch(()=>fallbackCopy(t,btn));}
   else fallbackCopy(t,btn);
