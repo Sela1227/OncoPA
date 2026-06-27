@@ -50,11 +50,11 @@ OncoPA/
 
 ## 版本
 
-V0.3.0（資料 115.5.22）
+V0.15.0（資料 115.5.22）
 
 ---
 
 <div align="center">
   <img src="favicon/sela.svg" width="56" alt="SELA"/>
-  <p><sub>Made by <b>SELA</b> · V0.3.0</sub></p>
+  <p><sub>Made by <b>SELA</b> · V0.15.0</sub></p>
 </div>
