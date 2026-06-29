@@ -273,6 +273,50 @@
     .panel{box-shadow:none;border:1px solid #ccc;}
   }
 
+
+/* ── 病摘 AI Prompt 庫（整合）── */
+.pl-launch{margin-left:auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:var(--pill);padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.pl-launch:hover{background:rgba(255,255,255,.26)}
+.pl-prep-hint{margin-top:10px;background:var(--accent-tint);border:1px solid var(--accent-soft);border-radius:var(--r);padding:11px 14px;font-size:13.5px;color:var(--accent-d);cursor:pointer;line-height:1.5}
+.pl-prep-hint:hover{background:var(--accent-soft)}
+.pl-mask{position:fixed;inset:0;background:rgba(20,40,55,.5);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding:24px 16px;overflow:auto}
+.pl-mask.on{display:flex}
+.pl-modal{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh-md);width:100%;max-width:760px;margin:auto;display:flex;flex-direction:column;max-height:92vh}
+.pl-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.pl-head h2{margin:0;font-size:18px;flex:1}
+.pl-x{background:none;border:none;font-size:23px;color:var(--ink-3);cursor:pointer;line-height:1;padding:0 4px}
+.pl-tools{padding:12px 20px 9px;border-bottom:1px solid var(--line-2)}
+.pl-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.pl-search{flex:1;min-width:170px;border:1px solid var(--line);border-radius:var(--r);padding:9px 13px;font-size:14px;outline:none;color:var(--ink)}
+.pl-search:focus{border-color:var(--accent-l);box-shadow:0 0 0 3px var(--accent-soft)}
+.pl-add{background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:9px 14px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.pl-add:hover{background:var(--accent-d)}
+.pl-cats{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.pl-chip{border:1px solid var(--line);background:var(--surface);border-radius:var(--pill);padding:4px 12px;font-size:12px;color:var(--ink-2);cursor:pointer}
+.pl-chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pl-body{padding:14px 20px 20px;overflow:auto}
+.pl-card{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-sm);margin-bottom:12px;overflow:hidden}
+.pl-ttl{font-size:15px;font-weight:700;margin:13px 15px 3px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.pl-tag{font-size:11px;border-radius:var(--pill);padding:2px 9px;background:var(--accent-tint);color:var(--accent-d);font-weight:500}
+.pl-tag.mine{background:var(--ok-bg);color:var(--ok)}
+.pl-use{font-size:13px;color:var(--ink-2);margin:0 15px}
+.pl-how{font-size:12.5px;color:var(--ink-3);margin:7px 15px 0;padding-left:18px}
+.pl-how li{margin:2px 0}
+.pl-act{display:flex;gap:7px;flex-wrap:wrap;padding:12px 15px 13px}
+.pl-copy{background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);padding:8px 15px;font-size:13.5px;font-weight:600;cursor:pointer}
+.pl-copy.done{background:var(--ok)}
+.pl-mini{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.pl-mini:hover{background:var(--surface-3)}
+.pl-full{display:none;margin:0;padding:14px 15px;background:var(--surface-2);border-top:1px solid var(--line);font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--ink-2);max-height:360px;overflow:auto}
+.pl-full.open{display:block}
+.pl-fld{margin-bottom:11px}
+.pl-fld label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:4px;font-weight:600}
+.pl-fld input,.pl-fld textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 11px;font-size:13.5px;font-family:inherit;color:var(--ink);outline:none;box-sizing:border-box}
+.pl-fld textarea{resize:vertical;min-height:78px}
+.pl-fld textarea.big{min-height:170px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.pl-empty{text-align:center;color:var(--ink-3);padding:36px}
+.pl-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 17px;border-radius:var(--pill);font-size:13.5px;opacity:0;transition:.25s;z-index:1100;pointer-events:none}
+.pl-toast.on{opacity:1}
 </style>
 </head>
 <body>
@@ -280,7 +324,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.20.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.21.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -297,9 +341,10 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.20.0">v0.20.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.21.0">v0.21.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
+    <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
   </div>
 </div>
 
@@ -844,6 +889,7 @@ function renderPrep(){
   h+=`<div class="rblk"><h4>要備齊的資料</h4><ul class="checklist" id="chk">${
     docs.map((x,i)=>`<li class="${cur.checks[i]?'on':''}" onclick="toggleChk(${i})"><span class="box">${cur.checks[i]?'✓':''}</span><span>${esc(x)}</span></li>`).join('')
   }</ul></div>`;
+  if(docs.some(x=>/基因檢測：|生物標記：/.test(x)))h+=`<div class="pl-prep-hint" onclick="plOpen()">🧬 需附基因／生物標記檢測報告？用<b>病摘 AI Prompt</b>把報告萃取成可填表的值 →</div>`;
   if(cur.commonG.length){
     h+=`<div class="rblk"><h4>別忘了共通規定（逐項確認）</h4><div id="ccommon">`;
     cur.commonG.forEach((g,gi)=>{
@@ -887,6 +933,278 @@ function resetAll(){
 
 function esc(s){return(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function trim1(s){return(s||'').replace(/\n/g,'　');}
+</script>
+
+<!-- 病摘 AI Prompt 全文（免跳脫） -->
+<script type="text/plain" id="pl-builtin-gene">你是分子病理資料萃取助理。任務：讀取下方指定病人的「基因檢測報告／分子病理報告」，
+萃取資料並輸出可直接填入院內「基因報告（新增）」表單的內容。
+
+【最高原則】
+1. 只根據報告原文填寫。報告沒寫的，留空並標「（報告未載）」，禁止臆測或用常識補。
+2. 出處核對為**內部步驟**：每個值你都要能在報告找到依據，但**不要逐欄印出出處引文**。
+   個管師若回覆「展開出處」，才列出各欄報告原文片段供稽核。
+3. 任何代碼（LOINC）若無法在下方對照表明確對應，輸出「⚠️待人工確認」並附你判斷的候選，不要硬填。
+4. 全程使用繁體中文。⚠️**檢測日期欄吃民國 7 碼原樣（如 1150325），不要轉成西元**；
+   報告若為西元日期，先轉民國 7 碼（民國年 = 西元年 − 1911，組成 YYYMMDD）。
+
+5. ⚠️**輸出一律用下方【精簡輸出樣板】**：一欄一行、值優先、代碼系統 URL 等表單已預填的固定值免印、
+   不附出處、不印自我核對。整份輸出應能讓個管師一眼照欄填完。
+
+────────────────────────────────────
+【欄位輸入型態】下拉欄的值**必須等於下拉選項字串**，個管師才能直接選：
+- 下拉：檢測檢體類型、基因臨床判讀結果（兩個下拉）、檢測方法→照代碼表 display 填。
+- 表格（可加列）：基因檢測→**只有結果的基因才列，一基因一列**（個管師按＋逐列新增）。
+- 文字框：檢測日期、基因檢測分析結果、附件。　勾選：外院報告。
+
+【精簡輸出樣板】← 你的回覆只輸出這一塊（依此格式、勿增列出處或核對）：
+
+基因報告填寫值｜病歷號：____
+評估項目：69548-6 Genetic variant assessment（固定，多數系統已預填）
+檢測日期：民國 7 碼（例 1150325，勿轉西元）
+檢測機構：CAP／TAF／TFDA／TSP（院內 CAP；查找視窗選認證別）
+檢測方法：LA##### display
+檢測檢體類型：LP##### display
+外院報告：是／否／⚠️待確認
+基因檢測明細（有結果的基因各一行）：檢測代碼 LOINC｜突變類型(下拉)｜檢測結果(下拉)
+基因檢測分析結果：（一句，≤40字）
+基因臨床判讀結果：第一下拉 ObservationInterpretationDetection｜第二下拉 Detected（偵測到變異；未測得則 Not detected）
+附件：有／無
+⚠️需人工確認：（只列需個管師親自判斷的欄位＋極短原因；若無則寫「無」）
+
+【樣板填好範例】
+基因報告填寫值｜病歷號：A1234567
+評估項目：69548-6 Genetic variant assessment（固定）
+檢測日期：1150325
+檢測機構：CAP
+檢測方法：LA26419-4 qPCR (real-time PCR)
+檢測檢體類型：LP247830-5 Cancer specimen
+外院報告：否（院內，CAP 認證）
+基因檢測明細：21666-3 EGFR（基因層級,病理科 SOP）｜突變類型 Substitution(LA6690-7)｜檢測結果 Present(LA9633-4)
+基因檢測分析結果：EGFR Exon21 L858R activating mutation，EGFR-TKI 反應性相關
+基因臨床判讀結果：第一下拉 ObservationInterpretationDetection｜第二下拉 Detected
+附件：有
+⚠️需人工確認：附件檔名（報告未載）
+
+────────────────────────────────────
+【各欄判斷規則】← 以下為你萃取時的內部依據，**不要在輸出中複述**：
+
+1. 評估項目：固定值 69548-6（Genetic variant assessment），代碼系統 http://loinc.org
+   → 此欄不需判斷，直接帶入固定值。
+
+2. 檢測日期：取報告「報告日期」（無則取「採檢日期」）。⚠️**填民國 7 碼原樣（例 1150325），勿轉西元**。
+
+3. 檢測機構（查找視窗 UBrowList，固定 4 選項：CAP／TAF／TFDA／TSP）：選執行實驗室的認證別。
+   - 院內 CAP 認證實驗室執行 → 選 **CAP**（本院常態）。
+   - 若報告標明係其他認證體系所屬實驗室 → 選對應者（TAF／TFDA／TSP）。
+   - 無法判斷 → 「⚠️待確認」。
+
+4. 檢測方法（查找視窗 UBrowList，填 LOINC code，系統自動顯示 display）。
+   ⚠️**優先依【病理科 SOP】由基因帶出方法**：EGFR/BRAF/KRAS/NRAS → qPCR(LA26419-4)；
+   HER2/ROS1 → FISH(LA26404-6)；PD-L1 → Immune stain(LP6333-1)；ALK → Immune stain 或 Molgen(LP6404-0)。
+   報告若明載方法則以報告為準（通常一致）。其他：NGS → Sequencing(LA26398-0)；一般 PCR → PCR(LA26418-6)。
+
+5. 檢測檢體類型：對照【檢體類型代碼表】填 LOINC + display（下拉欄）。
+   血液 → Bld(LP7057-5)；腫瘤／癌組織 → Cancer specimen(LP247830-5)；
+   組織／抹片 → Tiss(LP7641-6)；未具體說明之組織 → XXX>Tissue(LP234849-0)；骨髓 → Bone Mar(LP7410-6)。
+
+6. 基因檢測明細（表格，可加列）：**只為「有結果的基因」各列一行**，個管師按＋逐列新增；
+   panel 中陰性／未測之基因不列。逐欄如下：
+   | 基因檢測(基因+LOINC) | 基因突變類型(+LOINC) | 基因檢測結果 | 報告原文出處 |
+   每列由「基因子視窗」填三個受控欄位（皆有下拉，突變類型／檢測結果可改自由文字）：
+   - 檢測代碼（查找視窗＝452 筆基因表）：**預設依【病理科 SOP】用基因層級碼**
+     （EGFR→21666-3、HER2→49683-6…），具體變異寫進分析結果文字框。
+     ⚠️若科室採變異層級，才依報告 c. 變化比對細表挑唯一碼（如 55766-0=L858R）；無法唯一對應則標「⚠️待確認」。
+   - 突變類型（下拉，見【突變類型】12 選項）：點突變→Substitution；缺失→Deletion；
+     **融合→Gene fusion transcript details(95123-6)**；CNV／MSI／TMB 各有專屬選項。
+   - 檢測結果（下拉，見【檢測結果】4 選項）：偵測到變異→**Present(LA9633-4)**；
+     未測得→Absent(LA9634-2)；測不準／無結論→No call／Indeterminate。
+     （具體變異名如 L858R 已含在檢測代碼裡，結果欄只需選 Present／Absent，不必重打變異。）
+
+7. 基因檢測分析結果：**一句、≤40字**摘要核心分子發現（填文字框）。
+   外院報告：依報告載明執行單位判斷——本院（檢測機構選 CAP）→ 否（不勾）；
+   明確外送他院／他廠 → 是（勾）；無法判斷 → 「⚠️待確認」。
+
+8. 基因臨床判讀結果（**兩個下拉**，HL7 ObservationInterpretation；見【基因臨床判讀結果】選項）：
+   ⚠️這不是 Pathogenic/VUS/Benign 那套致病性分類，而是「偵測判讀」。
+   - 第一下拉：基因檢測偵測到變異 → 選 **ObservationInterpretationDetection**。
+   - 第二下拉（連動）：偵測到致病／活化變異 → **Detected**（或 Positive）；未測得 → Not detected（或 Negative）。
+   - 報告原文的治療意義（如 activating、TKI 反應性）寫進「基因檢測分析結果」文字框，**不放這裡**。
+
+9. 基因報告（附件）：只填「有」或「無」。⚠️**不得由報告標題推測 PDF 檔名**；
+   除非報告明確載出檔名／路徑，否則檔名一律填「待人工補」。（非必要欄位）
+
+────────────────────────────────────
+【代碼對照表】
+
+▍檢體類型【下拉，固定 5 選項，值須完全相符】（基因檢測檢體類型 LOINC）
+LP7057-5 Bld（血液）｜LP247830-5 Cancer specimen（癌組織）｜LP7641-6 Tiss（組織及抹片）
+｜LP234849-0 XXX>Tissue（未具體說明組織）｜LP7410-6 Bone Mar（骨髓）
+
+▍突變類型【下拉，固定 12 選項，值須完全相符】（基因子視窗，以院內實際下拉為準）
+LA6692-3 Deletion｜LA6686-5 Duplication｜LA6687-3 Insertion｜LA6688-1 Insertion/Deletion
+｜LA6689-9 Inversion｜LA6690-7 Substitution｜O55-2 Delins｜LA11883-8 Not detected
+｜95123-6 Gene fusion transcript details（融合用）｜101397-8 Copy number variation analysis
+｜81695-9 Microsatellite instability（MSI）｜94077-5 Tumor mutation burden（TMB）
+
+▍檢測結果【下拉，固定 4 選項，值須完全相符】（基因子視窗）
+LA9633-4 Present（偵測到變異）｜LA9634-2 Absent（未測得）
+｜LA18198-4 No call（測不出）｜LA11884-6 Indeterminate（無結論）
+
+▍基因臨床判讀結果【主表單兩個下拉，連動，HL7 ObservationInterpretation】
+　第一下拉（判讀類別，固定 8 選項）：ObservationInterpretationDetection（偵測，基因檢測用這個）
+　｜ObservationInterpretationExpectation｜ReactivityObservationInterpretation
+　｜_GeneticObservationInterpretation｜_ObservationInterpretationChange
+　｜_ObservationInterpretationExceptions｜_ObservationInterpretationNormality｜_ObservationInterpretationSusceptibility
+　第二下拉（依第一下拉連動）：基因檢測選 Detection → leaf 為
+　**Detected／Not detected／Positive／Negative／Indeterminate／Equivocal**。
+　→ 偵測到致病／活化變異 → 第一下拉 ObservationInterpretationDetection、第二下拉 **Detected**（或 Positive）；
+　　 未測得 → Not detected（或 Negative）。
+　（其餘類別的連動 leaf 供參：Expectation→Expected/Unexpected；Reactivity→Reactive/Non-reactive/Weakly reactive；
+　　Change→Better/Worse/Significant change up/down——基因檢測一般用不到。）
+
+▍檢測方法【查找視窗，填 code】（常用節錄；完整見院內查找視窗）
+LA26398-0 Sequencing｜LA26418-6 PCR｜LA26419-4 qPCR(real-time PCR)｜LA26404-6 FISH
+｜LA26406-1 Karyotyping｜LA26415-2 MLPA｜LA26399-8 Oligo aCGH｜LA26403-8 Digital array
+｜LP6333-1 Immune stain（免疫染色/IHC，PD-L1 用）｜LP6404-0 Molgen（分子，ALK 可用）
+
+▍★病理科 SOP：基因 → 檢測代碼 → 檢測方法（單基因常規檢測，**優先採用此對應**）
+| 基因 | 檢測代碼(基因層級) | 檢測方法 |
+| EGFR | 21666-3 | LA26419-4 qPCR |
+| BRAF | 104278-7 ⚠️ | LA26419-4 qPCR |
+| KRAS / NRAS | 81420-2 | LA26419-4 qPCR |
+| HER2(ERBB2) | 49683-6 | LA26404-6 FISH |
+| ROS1 | 102038-7 | LA26404-6 FISH |
+| PD-L1 | （見下方細表）| LP6333-1 Immune stain |
+| ALK | （見下方細表）| LP6333-1 Immune stain 或 LP6404-0 Molgen |
+※此表為基因層級（一基因一碼）；具體變異（如 L858R）寫進「基因檢測分析結果」文字框，
+　突變類型選對應型態（Substitution 等）、檢測結果選 Present。
+※⚠️104278-7(BRAF) 在本 ODS 代碼表查無，請於院內 live 查找視窗確認後使用。
+※若改採「變異層級代碼」（如 EGFR L858R=55766-0），見下方各基因細表（與本 SOP 二擇一，由科室定）。
+
+▍基因 LOINC 對照（變異層級／其餘基因；肺癌試點＋常見癌別，取自健保給付規定所列代碼）
+※同一基因多碼，請依報告實際變異挑選最相符者；無法唯一對應時列候選並標待確認。
+- EGFR（⚠️肺癌最常用，務必用「變異層級」對照，勿用裸碼亂猜）：
+    · Exon 19 deletion ........... 55764-5
+    · Exon 21 L858R (c.2573T>G) .. 55766-0   ← 不要跟 T790M 搞混
+    · Exon 21 L861Q (c.2582T>A) .. 55767-8
+    · Exon 20 S768I (c.2303G>T) .. 55768-6
+    · Exon 20 T790M (c.2369C>T) .. 55769-4（定性）／85383-8（定量 actual/normal）
+    · Exon 18 G719X (c.2155/2156) 55765-2
+    · Exon 20 insertion .......... 55770-2
+    · 整體 EGFR 突變分析（panel/未指明特定點位）21665-5（targeted mutation analysis）／21666-3
+    → 先比對報告的 c. 變化或 exon+胺基酸，挑出唯一相符者；報告只寫「EGFR mutation detected」未指明點位時，才用 21665-5。
+- ALK（肺癌多為融合／重排；⚠️挑碼依「檢測方法＋事件型態」，非依點位）：
+    · ALK 重排 by FISH（陽性，定性）..... 78205-2
+    · ALK 重排 by FISH（敘述型 narrative） 78210-2
+    · ALK 重排陽性細胞比例 by FISH（定量） 78233-4
+    · EML4-ALK 融合轉錄本 by NGS/RT-PCR .. 88744-8（Molgen）／79206-9（inv(2) 融合）
+    · 整體 ALK 突變分析（panel/未指明）... 100019-9
+    ⚠️淋巴瘤陷阱：21787-7、21813-1、90305-4 是 t(2;5) NPM1-ALK，屬 ALCL 淋巴瘤，**肺癌絕不可用**。
+    ⚠️104276-1 院內 452 筆代碼表查無，勿填。
+    　突變類型欄：ALK 融合 → 選「Gene fusion transcript details(95123-6)」。
+- ROS-1：院內表僅有 102038-7（ROS1 targeted mutation analysis，panel 層級）。
+    報告為 ROS1 融合陽性亦填 102038-7，突變類型選「Gene fusion transcript details(95123-6)」，
+    並於分析結果欄寫明融合對象（如 CD74-ROS1）。
+    ⚠️104290-2、81747-8 院內 452 筆代碼表查無，勿填。
+- MET（肺癌須區分「exon14 跳脫」與「擴增」）：
+    · MET exon14 skipping／點突變 → 100026-4（targeted mutation analysis）
+    · MET 擴增 by NGS .... 102039-5｜by FISH .... 90926-7
+    · MET 拷貝數（每核）by FISH 92906-7｜MET/CEP7 比值 by FISH 92907-5
+    （院內表無 exon14 專屬碼，exon14 跳脫一律歸 100026-4，變異細節寫結果欄。）
+- BRAF：58415-1 或 85101-4，兩者皆為 BRAF p.Val600Glu（V600E）。
+    ⚠️院內表僅有 V600E 碼；非 V600E 之 BRAF 變異無對應碼 → 標「⚠️待人工確認」。
+- NTRK：93813-4
+- KRAS / NRAS（院內表僅基因／panel 層級，⚠️無點位專屬碼，含肺癌 G12C）：
+    · KRAS targeted mutation analysis 21702-6（最常用）／53620-1／75974-6／85509-8
+    · KRAS full mutation analysis(定序) 82535-6｜KRAS gene(定序) 83059-6
+    · NRAS targeted mutation analysis 21719-0／53621-9／85510-6｜NRAS gene(定序) 83060-4
+    · KRAS & NRAS 合併分析 81420-2
+    → 具體變異（如 G12C、G12D）填入「基因檢測結果」欄，不要硬找點位碼。
+- HER2：31150-6, 42783-1, 49683-6, 74860-8, 74885-5, 85318-4, 85328-3, 96893-3
+- BRCA：21639-0, 38531-0, 59041-4, 79207-7
+- PD-L1：83052-1, 83054-7, 85147-7, 99064-8, 83057-0
+（其餘基因以院內「#代碼系統_基因檢測代碼LOINC」452 筆完整表為準。）
+（通則：給付規定所列代碼**不保證都在院內代碼表內**；凡院內表查無者一律標「⚠️待人工確認」，勿填。）
+
+────────────────────────────────────
+【內部自我核對（默默做，不要印出）】
+完成後自行確認：①每欄值都有報告依據、無依據者已標「⚠️待確認」；②基因 LOINC 唯一對應、
+多碼未定者已標待確認；③檢測日期為民國 7 碼原樣（未誤轉西元）；④機構（CAP／外送）與外院報告連動正確。
+凡①～④發現需人工判斷者，**只彙整成輸出樣板最後那一行「⚠️需人工確認」**，不要展開逐項說明。
+
+請依「指定病人：＿＿＿＿（病歷號／姓名）」開始萃取，並**只輸出【精簡輸出樣板】那一塊**。</script>
+<div class="pl-mask" id="plMask"><div class="pl-modal">
+  <div class="pl-head"><h2>病摘 AI Prompt 庫</h2><button class="pl-x" onclick="plClose()">×</button></div>
+  <div class="pl-tools">
+    <div class="pl-row">
+      <input class="pl-search" id="plQ" placeholder="搜尋 Prompt 標題／用途／內容…">
+      <button class="pl-add" id="plAddBtn" onclick="plOpenForm()">＋ 匯入</button>
+    </div>
+    <div class="pl-cats" id="plCats"></div>
+  </div>
+  <div class="pl-body" id="plBody"></div>
+</div></div>
+<div class="pl-toast" id="plToast"></div>
+<script>
+(function(){
+const LS='oncopa_prompts_v1';
+function builtins(){return[{id:'gene',builtin:true,title:'分子病理 → 基因報告（新增）表單萃取',cat:'基因/分子病理',
+ use:'讀病人基因/分子病理報告，輸出可直接照欄填入院內「基因報告（新增）」表單的精簡值。',
+ how:['複製整段 Prompt，貼入醫院病摘 AI','在 Prompt 末「指定病人」填病歷號/姓名，或接著貼上該病人報告','AI 依【精簡輸出樣板】輸出，個管照欄填表（含 LOINC、民國 7 碼日期）','需稽核時回「展開出處」，AI 才列各欄報告原文片段'],
+ body:document.getElementById('pl-builtin-gene').textContent}];}
+function loadC(){try{return JSON.parse(localStorage.getItem(LS)||'[]')}catch(e){return[]}}
+function saveC(a){try{localStorage.setItem(LS,JSON.stringify(a))}catch(e){plToast('儲存失敗：瀏覽器封鎖本機儲存')}}
+let custom=loadC(),cat='',formMode=false;
+function all(){return[...builtins(),...custom];}
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function plToast(m){var t=document.getElementById('plToast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600);}
+window.plOpen=function(){document.getElementById('plMask').classList.add('on');formMode=false;plRender();};
+window.plClose=function(){document.getElementById('plMask').classList.remove('on');};
+window.plSetCat=function(c){cat=c;plRender();};
+function plRender(){
+  var box=document.getElementById('plBody');var tools=document.querySelector('.pl-tools');
+  if(formMode){tools.style.display='none';box.innerHTML=plForm();return;}
+  tools.style.display='';
+  var q=document.getElementById('plQ').value.trim().toLowerCase();
+  var cats=[...new Set(all().map(function(p){return p.cat;}).filter(Boolean))];
+  document.getElementById('plCats').innerHTML='<span class="pl-chip '+(cat===''?'on':'')+'" onclick="plSetCat(\'\')">全部</span>'+cats.map(function(c){return '<span class="pl-chip '+(cat===c?'on':'')+'" onclick="plSetCat(\''+esc(c)+'\')">'+esc(c)+'</span>';}).join('');
+  var items=all().filter(function(p){if(cat&&p.cat!==cat)return false;if(q){var hay=(p.title+' '+(p.use||'')+' '+(p.cat||'')+' '+p.body).toLowerCase();if(hay.indexOf(q)<0)return false;}return true;});
+  if(!items.length){box.innerHTML='<div class="pl-empty">查無符合的 Prompt</div>';return;}
+  box.innerHTML=items.map(function(p){
+    var how=(p.how&&p.how.length)?'<ol class="pl-how">'+p.how.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>':'';
+    var mine=p.builtin?'':'<span class="pl-tag mine">我的</span>';
+    var ed=p.builtin?'':'<button class="pl-mini" onclick="plEdit(\''+esc(p.id)+'\')">編輯</button><button class="pl-mini" onclick="plDel(\''+esc(p.id)+'\')">刪除</button>';
+    return '<div class="pl-card"><div class="pl-ttl">'+esc(p.title)+(p.cat?' <span class="pl-tag">'+esc(p.cat)+'</span>':'')+' '+mine+'</div>'+
+      (p.use?'<div class="pl-use">'+esc(p.use)+'</div>':'')+how+
+      '<div class="pl-act"><button class="pl-copy" onclick="plCopy(this,\''+esc(p.id)+'\')">📋 複製整段 Prompt</button>'+
+      '<button class="pl-mini" onclick="plToggle(this)">展開全文</button>'+ed+'</div>'+
+      '<pre class="pl-full">'+esc(p.body)+'</pre></div>';
+  }).join('');
+}
+function findP(id){return all().filter(function(p){return p.id===id;})[0];}
+window.plToggle=function(btn){var pre=btn.closest('.pl-card').querySelector('.pl-full');pre.classList.toggle('open');btn.textContent=pre.classList.contains('open')?'收合全文':'展開全文';};
+window.plCopy=function(btn,id){var p=findP(id);if(!p)return;var done=function(){btn.classList.add('done');btn.textContent='✓ 已複製，貼入病摘 AI';setTimeout(function(){btn.classList.remove('done');btn.textContent='📋 複製整段 Prompt';},1800);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(p.body).then(done).catch(function(){fb(p.body,done);});}else fb(p.body,done);};
+function fb(text,done){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){plToast('複製失敗，請手動選取');}document.body.removeChild(ta);}
+function plForm(){var e=window._plEdit||{};return '<div class="pl-fld"><label>標題 *</label><input id="plf_title" value="'+esc(e.title||'')+'"></div>'+
+  '<div class="pl-fld"><label>分類</label><input id="plf_cat" value="'+esc(e.cat||'')+'" placeholder="例：基因/分子病理、事審、出院摘要"></div>'+
+  '<div class="pl-fld"><label>用途（一句）</label><input id="plf_use" value="'+esc(e.use||'')+'"></div>'+
+  '<div class="pl-fld"><label>使用方式（每行一步，可留空）</label><textarea id="plf_how">'+esc((e.how||[]).join('\n'))+'</textarea></div>'+
+  '<div class="pl-fld"><label>完整 Prompt 內容 *</label><textarea id="plf_body" class="big">'+esc(e.body||'')+'</textarea></div>'+
+  '<div class="pl-act"><button class="pl-copy" onclick="plSave()">儲存</button><button class="pl-mini" onclick="plCancelForm()">取消</button></div>';}
+window.plOpenForm=function(){window._plEdit=null;formMode=true;plRender();};
+window.plEdit=function(id){window._plEdit=custom.filter(function(x){return x.id===id;})[0];formMode=true;plRender();};
+window.plCancelForm=function(){formMode=false;window._plEdit=null;plRender();};
+window.plSave=function(){var title=document.getElementById('plf_title').value.trim();var body=document.getElementById('plf_body').value.trim();if(!title||!body){plToast('標題與內容為必填');return;}
+  var e=window._plEdit;var id=(e&&e.id)||('u'+Date.now());
+  var obj={id:id,builtin:false,title:title,cat:document.getElementById('plf_cat').value.trim(),use:document.getElementById('plf_use').value.trim(),how:document.getElementById('plf_how').value.split('\n').map(function(s){return s.trim();}).filter(Boolean),body:body};
+  var i=-1;custom.forEach(function(x,k){if(x.id===id)i=k;});if(i>=0)custom[i]=obj;else custom.push(obj);
+  saveC(custom);formMode=false;window._plEdit=null;plRender();plToast('已儲存到本機');};
+window.plDel=function(id){if(!confirm('確定刪除這則 Prompt？'))return;custom=custom.filter(function(x){return x.id!==id;});saveC(custom);plRender();plToast('已刪除');};
+document.getElementById('plMask').addEventListener('click',function(e){if(e.target.id==='plMask')plClose();});
+document.getElementById('plQ').addEventListener('input',function(){if(!formMode)plRender();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('plMask').classList.contains('on'))plClose();});
+})();
 </script>
 </body>
 </html>

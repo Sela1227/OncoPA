@@ -8,7 +8,7 @@
 
 ## 〇、當前狀態
 
-- **版本：** V0.20.0（資料日期 115.6.23；首次實走第八節從母程式重生）
+- **版本：** V0.21.0（資料日期 115.6.23；整合病摘 AI Prompt 庫）
 - **英文名／識別：** **OncoPA**（Onco + Prior-Authorization）
 - **命名（雙語）：** 資料夾／zip 檔名用英文 `OncoPA`（Kit 英文名鐵律）；**程式內顯示維持中文「癌藥事審・送審準備」**（SELA 指定）。下個 Claude 別「好心」把顯示改成英文。
 - **三層目標歸屬：** 醫院發展（院內個管事審作業工具）為主；非對外分享、非純個人。
@@ -61,6 +61,7 @@
 | 文件要件偵測 | `DOC_RULES` 陣列 |
 | 免疫藥拆解邏輯 | `mkScenario()`、`buildCards()` 的 immuno 分支 |
 | favicon | `favicon/`（SELA 標準套組，正常不動） |
+| 病摘 AI Prompt 庫 | 內建 prompt 全文在 `<script type="text/plain" id="pl-builtin-gene">`；UI/邏輯在末段 `pl` IIFE（全 `pl-` 命名空間）。**新增全院共用 prompt → 加進 `builtins()`**；個管自訂存 localStorage（本機） |
 
 ---
 
@@ -147,6 +148,7 @@ python -m http.server 8000   # 開 http://localhost:8000
 - [ ] osimertinib（肺癌 EGFR 第一線）→ **不**出現「腎功能檢驗值」；基因項顯示「基因檢測：EGFR 基因突變檢測（Exon 19 Del／L858R）」；選 T790M 那條則顯示（T790M）
 - [ ] cabozantinib（甲狀腺癌）→ 基因項**不**出現 EGFR（VEGFR 子字串不誤判）
 - [ ] regorafenib（大腸癌）→ 基因項顯示「All-RAS 基因突變分析」、**不**出現 EGFR
+- [ ] 點 topbar「🧬 病摘 AI Prompt」開窗、見內建基因 prompt、可一鍵複製；備齊送審頁有基因/標記項時顯示情境連結亦能開窗；「＋匯入」新增後重整仍在
 - [ ] 資料日期顯示 115.6.23；9.18 乳癌「早期乳癌 · 輔助」卡內含術後 pCR/non-pCR 分流新內容；9.98 無「血液淋巴癌」誤掛
 - [ ] zolbetuximab → 標記含「Claudin 18.2」；ponatinib → 基因含「BCR-ABL T315I」；capivasertib → 「PIK3CA／AKT1／PTEN」而 alpelisib → 僅「PIK3CA」；PARP 婦癌(卵巢) → 基因含「HRD 同源重組缺陷」
 - [ ] 開 gene-marker-report.html → 共 103 品項、58 項有需求；逐(藥×癌別)；cetuximab 大腸癌列出 All-RAS／BRAF V600E、頭頸癌列為「—」；9.69 各癌別不同；可搜尋／篩選／列印
@@ -167,6 +169,7 @@ python -m http.server 8000   # 開 http://localhost:8000
 | V0.7.0 | 免疫藥（9.69）卡片改「型態→單用/併用」兩層分組；卡片標題去掉與型態標題重複的前綴與尾端單用/併用標記；修正未命中型態的孤兒卡（如肺腺癌第三線歸入非小細胞肺癌）；prep/複製仍用完整條文標題 |
 | V0.8.0 | 條文卡改手風琴收合（點標題展開、開一關一、預設展開第一張，CTA 不觸發收合），大幅縮短長條文清單；移除送審準備面板「需事前審查」提醒框（本系統每藥皆需事審、為冗訊；表單編號仍見於藥名列與備齊資料清單） |
 | V0.9.0 | 選癌別頁改垂直置中、頁尾下沉，消除大片空白；移除冗餘副標（標題＋步驟列已說明流程）；資料修正：Cetuximab 9.27 大腸直腸癌由「1 條文含 3 子項」拆為 3 個獨立適應症卡（第一線 FOLFIRI/FOLFOX、第二線 encorafenib BRAF、二線以上 irinotecan EGFR），病人對應其一 |
+| V0.21.0 | 整合「**病摘 AI Prompt 庫**」進 OncoPA：topbar 常駐入口鈕＋備齊送審區（偵測到基因/標記清單時）情境連結，開彈窗式 Prompt 庫。內建首支 prompt（分子病理→院內「基因報告（新增）」表單萃取，含 LOINC/民國7碼/病理科 SOP 對照），一鍵複製整段貼入醫院病摘 AI；個管可自行匯入/編輯/刪除自訂 prompt（localStorage 本機保留）。全 class/JS 以 `pl-` 命名空間隔離、prompt 全文置 `<script type=text/plain>` 免跳脫。資料未動（115.6.23）。⚠️ localStorage 自訂 prompt 綁裝置/瀏覽器，不跨機；全院共用須改放 `builtins()` 由 SELA 維護部署 |
 | V0.20.0 | **首次實走第八節：從母程式 V4.2.0 重生，資料日期 115.5.22→115.6.23**。兩層 diff：編號層 0 增刪；條文層 5 真改（9.18 早期乳癌 pCR/non-pCR 重構〔115/7/1〕、9.36.1 tucidinostat 擇一、9.82 180mg、9.104 限20月、9.120 12療程上限）。做法：97 支用母程式乾淨 0623 文字＋header 正規化沿用 `_title`；6 支手動拆分/已修者（9.20/9.27/9.37/9.43/9.80/9.98）保留現行；9.18 母程式新結構＋手補題。⚠️ 母程式 V4.2.0 仍含 9.98 OCR 滲入（9.99 併入血液淋巴癌），OncoPA 端再次保留修正，**建議上游母程式修正**。基因/標記 V0.19.0 修正全保留；報表同步重生。驗證：漏題=0、兩層 diff 僅預期、103 藥、JS 通過（詳坑 #8）|
 | V0.19.0 | 依另一 AI 的「事審＋生物標記」整理交叉核對，補抓 5 項原文真有但先前漏抓者：CLDN18.2(zolbetuximab，原僅 HER2)、BCR-ABL T315I(ponatinib，先前完全未列)、PIK3CA／AKT1／PTEN(capivasertib，條件式；alpelisib 仍僅 PIK3CA)、HRD 同源重組缺陷(PARP 卵巢，BRCA 外之替代)、ANCA(rituximab 血管炎)。有需求品項 57→58。已查證：一代 EGFR-TKI(gefitinib/erlotinib/afatinib/dacomitinib)、Lonsurf 等**不在本版 chap9 資料**(對方多列，scope 不同，未納)。⚠️ 對方引用 chap9_**1150623**.pdf(115.6.23) 較本專案 115.5.22 新——待向健保署確認是否有新版，再決定是否重建資料 |
 | V0.18.0 | 新增功能：基因／生物標記由通用標籤改「具名萃取」(`geneDocs`/`markerDocs`)——備件清單具名顯示需附哪個基因檢測（含 Exon19/L858R、T790M、Exon20 插入、V600E、All-RAS、ALK、ROS-1、NTRK、MET Exon14、BRCA、FLT3-ITD、PIK3CA、FGFR2、PDGFRA、RET…）與哪個生物標記（PD-L1、HER2、MSI/MMR、CD20/19/22/30/33、17p、IGHV）。逐條分流；修坑 #7（VEGFR 子字串、anti-EGFR 前治療、BRAF 重複）。另出獨立報表 `gene-marker-report.html`（內嵌同源函式＝單一真相源，可搜尋/篩選/列印） |
