@@ -8,7 +8,7 @@
 
 ## 〇、當前狀態
 
-- **版本：** V0.16.0（雛型階段；版本號自 V0.2.0 重新定基）
+- **版本：** V0.20.0（資料日期 115.6.23；首次實走第八節從母程式重生）
 - **英文名／識別：** **OncoPA**（Onco + Prior-Authorization）
 - **命名（雙語）：** 資料夾／zip 檔名用英文 `OncoPA`（Kit 英文名鐵律）；**程式內顯示維持中文「癌藥事審・送審準備」**（SELA 指定）。下個 Claude 別「好心」把顯示改成英文。
 - **三層目標歸屬：** 醫院發展（院內個管事審作業工具）為主；非對外分享、非純個人。
@@ -102,6 +102,34 @@
    - 原因：`is_admin`/`isAdminClause` 的多數規則以 `not IND` 為前提；但 IND 含 `與[^。]{1,30}?(?:併用|合併使用)`，會把「與 Y 不得合併使用」也判為有適應症訊號，使 admin 守則失效。OCR 又在「僅 得擇一給付」插空格、條尾帶日期戳 `（98/6/1、`，讓精確比對落空。
    - 做法：在 `ADMIN_PATTERNS`（**不經 IND 守門**的 `ADMIN_RE` 迴圈）補錨定式精確樣式（`^不得與.{1,50}(?:合併使用|併用)`、`僅\s*得擇一給付`(容忍 OCR 空格)、`^總療程以\d`、`每日至多給付`…）。**鐵律：build.py 的 `ADMIN_PATTERNS` 必與 index.html 的 JS `isAdminClause` 內 `ADMIN_RE` 逐條同步**（用 build.py 自動產生 JS regex literal，避免兩端漂移）。補規則後必跑驗證：coverage 缺漏=0、無藥/癌別變 0 適應症（保守原則）。安全網案例見策展腳本註解（9.65 Pralatrexate「每人至多給付」歸 admin 但 PTCL 適應症須留、9.68 Radium intro 留適應症、9.38 Temsirolimus header 像 admin 但 subitems 含 IND 守住、9.56 Brentuximab「限用於成人患者:」歸 admin）。
 
+6. **DOC_RULES 腎功能規則 `/i` 讓基因 EGFR 誤觸 eGFR（標靶藥假叫附腎功能）**
+   - 症狀：bevacizumab/regorafenib/panitumumab/cabozantinib/osimertinib/larotrectinib/amivantamab/encorafenib/fruquitinib 等 9 支 EGFR 相關標靶藥，「要備齊的資料」冒出「腎功能檢驗值」，但原條文無任何腎功能要求（個管師反映）。
+   - 原因：`DOC_RULES` 腎功能條 `/(eGFR|CCr|腎功能)/i` 帶 `/i`；癌基因 **EGFR**（大寫）與腎功能 **eGFR**（小寫 e）只差大小寫，不分大小寫即誤判。**與坑 #12 同源**（clauseTitle 已修區分大小寫，DOC_RULES 當時漏修）。
+   - 做法：移除該條 `/i`，eGFR 只配小寫 e（不再中 EGFR）；同時把真腎功能變體用字元類補齊避免漏抓：`/(eGFR|[Cc][Cc]r|[Cc]r[Cc]l|腎功能|腎絲球|肌酸酐|[Cc]reatinine)/`。驗證：9 支 EGFR 假陽性消失；cetuximab（頭頸癌 Ccr<50）、carfilzomib(CrCl)、骨髓瘤群(eGFR/腎功能) 等真腎功能藥仍正確觸發。**基因/生物標記規則 `/(EGFR|ALK…)/i` 不動**，EGFR 藥仍正確要「基因／生物標記檢測報告」。
+   - 通則：DOC_RULES 任何「短英文縮寫＋/i」都要查是否與基因/生物標記縮寫撞（eGFR↔EGFR、CR↔…），縮寫類規則優先用區分大小寫＋字元類涵蓋變體。
+
+7. **基因／生物標記從「通用標籤」改為「具名萃取」——latin token 的子字串與前治療脈絡會誤判**
+   - 背景：個管師反映「基因／生物標記檢測報告」太籠統，需指明哪個基因、哪個生物標記。改用 `geneDocs()／markerDocs()` 具名萃取。
+   - 踩到的坑：
+     a. **VEGFR 子字串**：`EGFR` 未加 `\b` 會吃到 `VEGFR`（cabozantinib 甲狀腺癌假陽性）→ 一律 `\bEGFR\b`，所有 latin gene token 都加 `\b`／區分大小寫（同坑 #6 eGFR 精神）。
+     b. **anti-EGFR 前治療脈絡**：條文「曾接受 anti-EGFR 療法」是前線條件、非檢測需求（regorafenib）→ EGFR 須額外滿足突變/表現/原生型脈絡(`突變|Exon|L858R|T790M|表現型|活化|原生型|插入`)才列為需檢測。
+     c. **BRAF V600E/V600 重複**：有 V600E 時不再另列 V600（特異優先）。
+   - 標籤語意：用「要附哪個檢測」之**中性**字樣（不分需突變陽性或需原生型），如「ALK 基因檢測」「All-RAS 基因突變分析」「PD-L1 表現量檢測」——個管師備件只需知道附哪份報告。
+   - **逐條(per-clause)萃取**：`buildDocList` 以選定條文 c.text 為主，基因/標記自動分流到該適應症（osimertinib 第一線只出 Exon19/L858R、第二線只出 T790M）；whole-drug 聯集僅用於 master 報表。
+   - **單一真相源**：master 報表 `gene-marker-report.html` **內嵌 index.html 同一份 `geneDocs／markerDocs`**，client 端即時計算。⚠️ 日後改萃取規則，兩處函式必須一起改（或重新由 index.html 複製產生報表）——與 build.py↔isAdminClause 同類紀律。
+   - **報表逐癌別精修**：master 報表初版用「整支聯集」，使 cetuximab 把大腸癌的 All-RAS／BRAF 掛到整列、頭頸癌讀者誤會。改為**逐(藥×癌別)**：
+     • 取文用 `per_cancer[癌別]`，兩種形態都要吃——①多數藥 `.clauses`（header＋subitems）；②僅 9.69 免疫為 `single_use/combo_use/pdl1/notes/subtitles`。
+     • per_cancer=null 者經稽核**全為單一癌別**，安全 fallback 到 items 全文。
+     • **不納入 common_data**：9.48 eribulin 的 common_data 混入一段 olaparib(BRCA) 條文，納入會假掛 BRCA；逐癌別 clauses 才是正確範圍。（順帶記：eribulin common_data 有 olaparib 條文滲入，屬待清資料瑕疵。）
+     • 結果：cetuximab 頭頸癌＝無需求；9.69 各癌別正確（肺癌 EGFR/ALK/ROS-1＋PD-L1、大腸癌 MSI、胃癌 PD-L1＋HER2、黑色素瘤 BRAF）。有需求品項 57（聯集時 58 含 eribulin 假陽性）。
+
+8. **首次實走第八節重生（母程式 V4.2.0→115.6.23）的三個陷阱**
+   - 背景：母程式改版 V4.2.0（資料日期 115.6.23）。兩層 diff：編號層 0 增刪（仍 103 事審）；條文層 5 真改（9.18 早期乳癌 pCR/non-pCR 重構〔115/7/1〕、9.36.1 與 tucidinostat 擇一、9.82 brigatinib 每日 180mg、9.104 zanubrutinib 限 20 月、9.120 glofitamab 12 療程上限）。
+   - 陷阱① **`_title` 沿用比對**：母程式無 `_title`，需從現行 OncoPA 以「header 正規化」沿用。norm 須**先去空白再去日期括號**（OCR 老 header 日期間有空格，反序會讓 `[0-9/、.]+` 在空格斷掉、括號去不掉）。
+   - 陷阱② **手動拆分藥要保留現行**：OncoPA build 把「Erbitux 型態」多適應症條文拆成多張帶題卡（9.18/9.20/9.27/9.37/9.43/9.80），母程式仍群組式。這些藥若 0623 未改→**保留現行已拆分條目**（勿用母程式群組版覆蓋）。只有 9.18 有改→用母程式新結構＋手補「早期乳癌 · 輔助」。
+   - 陷阱③ **母程式可能回退 OncoPA 下游修正**：9.98 Pemigatinib 的 OCR 滲入（9.99 Gilteritinib 併入「血液淋巴癌」）在 OncoPA V0.15.0 修過，但**母程式 V4.2.0 仍有**→重生時 9.98 須保留現行修正版。⚠️ **建議上游母程式也修掉 9.98 此 bug**，否則每次重生都要再補。
+   - 做法定案：97 支用母程式乾淨 0623 文字＋header 正規化沿用 `_title`；6 支（9.20/9.27/9.37/9.43/9.80/9.98）保留現行；9.18 用母程式＋手補題。驗證：漏題真適應症卡=0、兩層 diff 僅預期變動、V0.19.0 基因/標記修正全保留、報表同步重生。
+
 ---
 
 ## 五、煙霧測試（可貼上執行）
@@ -116,6 +144,12 @@ python -m http.server 8000   # 開 http://localhost:8000
 - [ ] 肺癌 → 免疫 → 免疫檢查點抑制劑 → 看到子分型分組（非小細胞/小細胞）、單用/併用卡
 - [ ] 搜 pembrolizumab 找得到（灰底為條文提及）
 - [ ] 選一條 → 複製條文、資料清單可勾、列印正常
+- [ ] osimertinib（肺癌 EGFR 第一線）→ **不**出現「腎功能檢驗值」；基因項顯示「基因檢測：EGFR 基因突變檢測（Exon 19 Del／L858R）」；選 T790M 那條則顯示（T790M）
+- [ ] cabozantinib（甲狀腺癌）→ 基因項**不**出現 EGFR（VEGFR 子字串不誤判）
+- [ ] regorafenib（大腸癌）→ 基因項顯示「All-RAS 基因突變分析」、**不**出現 EGFR
+- [ ] 資料日期顯示 115.6.23；9.18 乳癌「早期乳癌 · 輔助」卡內含術後 pCR/non-pCR 分流新內容；9.98 無「血液淋巴癌」誤掛
+- [ ] zolbetuximab → 標記含「Claudin 18.2」；ponatinib → 基因含「BCR-ABL T315I」；capivasertib → 「PIK3CA／AKT1／PTEN」而 alpelisib → 僅「PIK3CA」；PARP 婦癌(卵巢) → 基因含「HRD 同源重組缺陷」
+- [ ] 開 gene-marker-report.html → 共 103 品項、58 項有需求；逐(藥×癌別)；cetuximab 大腸癌列出 All-RAS／BRAF V600E、頭頸癌列為「—」；9.69 各癌別不同；可搜尋／篩選／列印
 - [ ] favicon 為 SELA logo、手機縮放正常
 
 ---
@@ -133,6 +167,10 @@ python -m http.server 8000   # 開 http://localhost:8000
 | V0.7.0 | 免疫藥（9.69）卡片改「型態→單用/併用」兩層分組；卡片標題去掉與型態標題重複的前綴與尾端單用/併用標記；修正未命中型態的孤兒卡（如肺腺癌第三線歸入非小細胞肺癌）；prep/複製仍用完整條文標題 |
 | V0.8.0 | 條文卡改手風琴收合（點標題展開、開一關一、預設展開第一張，CTA 不觸發收合），大幅縮短長條文清單；移除送審準備面板「需事前審查」提醒框（本系統每藥皆需事審、為冗訊；表單編號仍見於藥名列與備齊資料清單） |
 | V0.9.0 | 選癌別頁改垂直置中、頁尾下沉，消除大片空白；移除冗餘副標（標題＋步驟列已說明流程）；資料修正：Cetuximab 9.27 大腸直腸癌由「1 條文含 3 子項」拆為 3 個獨立適應症卡（第一線 FOLFIRI/FOLFOX、第二線 encorafenib BRAF、二線以上 irinotecan EGFR），病人對應其一 |
+| V0.20.0 | **首次實走第八節：從母程式 V4.2.0 重生，資料日期 115.5.22→115.6.23**。兩層 diff：編號層 0 增刪；條文層 5 真改（9.18 早期乳癌 pCR/non-pCR 重構〔115/7/1〕、9.36.1 tucidinostat 擇一、9.82 180mg、9.104 限20月、9.120 12療程上限）。做法：97 支用母程式乾淨 0623 文字＋header 正規化沿用 `_title`；6 支手動拆分/已修者（9.20/9.27/9.37/9.43/9.80/9.98）保留現行；9.18 母程式新結構＋手補題。⚠️ 母程式 V4.2.0 仍含 9.98 OCR 滲入（9.99 併入血液淋巴癌），OncoPA 端再次保留修正，**建議上游母程式修正**。基因/標記 V0.19.0 修正全保留；報表同步重生。驗證：漏題=0、兩層 diff 僅預期、103 藥、JS 通過（詳坑 #8）|
+| V0.19.0 | 依另一 AI 的「事審＋生物標記」整理交叉核對，補抓 5 項原文真有但先前漏抓者：CLDN18.2(zolbetuximab，原僅 HER2)、BCR-ABL T315I(ponatinib，先前完全未列)、PIK3CA／AKT1／PTEN(capivasertib，條件式；alpelisib 仍僅 PIK3CA)、HRD 同源重組缺陷(PARP 卵巢，BRCA 外之替代)、ANCA(rituximab 血管炎)。有需求品項 57→58。已查證：一代 EGFR-TKI(gefitinib/erlotinib/afatinib/dacomitinib)、Lonsurf 等**不在本版 chap9 資料**(對方多列，scope 不同，未納)。⚠️ 對方引用 chap9_**1150623**.pdf(115.6.23) 較本專案 115.5.22 新——待向健保署確認是否有新版，再決定是否重建資料 |
+| V0.18.0 | 新增功能：基因／生物標記由通用標籤改「具名萃取」(`geneDocs`/`markerDocs`)——備件清單具名顯示需附哪個基因檢測（含 Exon19/L858R、T790M、Exon20 插入、V600E、All-RAS、ALK、ROS-1、NTRK、MET Exon14、BRCA、FLT3-ITD、PIK3CA、FGFR2、PDGFRA、RET…）與哪個生物標記（PD-L1、HER2、MSI/MMR、CD20/19/22/30/33、17p、IGHV）。逐條分流；修坑 #7（VEGFR 子字串、anti-EGFR 前治療、BRAF 重複）。另出獨立報表 `gene-marker-report.html`（內嵌同源函式＝單一真相源，可搜尋/篩選/列印） |
+| V0.17.0 | 修坑 #6：`DOC_RULES` 腎功能條移除 `/i`，解決癌基因 **EGFR** 誤觸腎功能 **eGFR**——9 支 EGFR 標靶藥（bevacizumab/regorafenib/panitumumab/cabozantinib/osimertinib/larotrectinib/amivantamab/encorafenib/fruquitinib）不再假叫附腎功能；同步把真腎功能變體(Ccr/CrCl/creatinine/腎絲球/肌酸酐)補進規則避免漏抓（cetuximab 頭頸癌 Ccr、carfilzomib CrCl、骨髓瘤群 eGFR 仍正確觸發）。基因/生物標記規則不動 |
 | V0.16.0 | 流程改回「混合式」：選癌別頁(`#scr-find`)重新接上**全域藥名搜尋**（直接搜成分/商品/編號，不必先知癌別；命中→`pickDrug(fromSearch)` 自動帶癌別，多癌別則於選藥頁內選），保留「或選癌別瀏覽」。修正 V0.6.0 只留癌別優先導致「不知道藥用在哪種癌就完全搜不到」的盲點（例：dasatinib——本身非事審品項、僅在 9.32/9.67 等條文中被提及）。全 mention-only 命中改顯眼提示「非事審品項、僅條文提及」。renderSearch/pickDrug 機制本就在 JS，V0.6.0 起未接 UI，本版只重接介面、未動資料 |
 | V0.15.0 | 策展標題全癌別完成（接力肺癌，餘 8 大類共 242 條新增 `_title`，連同肺癌 19 條 = 全真適應症皆有北歐簡潔短標、用「·」分隔）。逐條審核揪出 25 條「限制/條件/程序」句被 IND 救回成假適應症，補 ~20 條錨定式 `ADMIN_PATTERNS`（含容忍 OCR 空格的 `僅\s*得擇一給付`、`^總療程以\d`、`每日至多給付`…）並**同步寫進 JS `isAdminClause`**（build.py 自動生成 JS regex，兩端不漂移）。資料修正：移除 9.98 Pemigatinib 誤掛之「血液淋巴癌」（OCR 把 9.99 Gilteritinib 內容併入，假陽性）。驗證：coverage 缺漏=0、無藥/癌別變 0 適應症、複製內容仍逐字＝識別行＋原文（`_title` 不入複製） |
 | V0.14.0 | (1)手機 RWD：全域斷詞(overflow-wrap/word-break)修長英文字串橫向溢出＋body overflow-x:hidden＋560px 小螢幕斷點。(2)isAdminClause 擴充：藥物擇一/互換規定(去空白容忍 OCR「使 用」)、劑量(最多/處方)、「無效後不再給付」、「使用注意事項」皆歸共通規定→333 適應症/78 共通。(3)策展標題：新增 `_title` 顯示覆蓋欄(優先於 clauseTitle，不動條文/複製)，**肺癌**階段完成 19 條 |
