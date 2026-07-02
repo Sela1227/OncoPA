@@ -324,7 +324,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.22.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.22.1</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -341,7 +341,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.22.0">v0.22.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.22.1">v0.22.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -797,6 +797,11 @@ function mkScenario(t,use,subs){
   let short=label;
   if(sub&&sub!=='其他')short=short.split(sub).join('');
   short=short.replace(/[（(](單用|併用化療|併用)[)）]\s*$/,'').replace(/^[·・:：、\s]+|[·・:：、\s]+$/g,'').trim();
+  // 「舊適應症」個管不易懂 → 依條文（限 109/4/1 前經審核同意、後續續用）改為明確抬頭
+  if(/舊適應症/.test(label)){
+    short=short.replace(/[（(]\s*舊適應症\s*[）)]/g,'').replace(/^[·・:：、\s]+|[·・:：、\s]+$/g,'').trim();
+    short=(short?short+' · ':'')+'限 109/4/1 前已核准續用';
+  }
   if(!short)short=label;
   return {kind:'scenario',label:label||trim1(clean).slice(0,36),short,use,sub:sub||'其他',text:body};
 }
@@ -817,7 +822,7 @@ function renderCards(){
     let html='';
     order.forEach(t=>{
       html+=`<div class="subgroup">${esc(t)}</div>`;
-      [['single','單用'],['combo','併用化療']].forEach(([u,ul])=>{
+      [['single','單用'],['combo','併用']].forEach(([u,ul])=>{
         const items=byType[t].filter(i=>cur.cards[i].use===u);
         if(!items.length)return;
         html+=`<div class="use-head">${ul}</div>`;
