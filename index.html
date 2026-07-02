@@ -268,9 +268,35 @@
     .sela-credit{margin-top:24px;}
   }
   @media print{
-    body{background:#fff;}.topbar,.stepper,.navbar,#gate,.btn-row,.card-cta,.toolbar,.pane-mobile-back{display:none!important;}
-    .console{display:block;}.prep-pane{position:static;}#scr-clauses .prep-pane{display:block!important;}
-    .panel{box-shadow:none;border:1px solid #ccc;}
+    @page{margin:11mm 12mm;}
+    body{background:#fff;font-size:10.5px;color:#000;}
+    .topbar,.stepper,.navbar,#gate,.btn,.btn-row,.card-cta,.toolbar,.pane-mobile-back,.list-pane,.pl-mask,.pr-mask,.pl-prep-hint,.pl-launch,.sela-credit,.pane-head{display:none!important;}
+    .console{display:block;}
+    .prep-pane{position:static;}
+    #scr-clauses .prep-pane{display:block!important;}
+    .panel{box-shadow:none;border:none;background:none;}
+    .prep-body{padding:0;}
+    /* 列印頁首（僅列印顯示） */
+    #printHead{display:block!important;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:8px;}
+    #printHead .ph-title{font-size:13px;font-weight:800;margin-bottom:4px;}
+    #printHead .ph-row{display:flex;flex-wrap:wrap;gap:2px 22px;font-size:10.5px;line-height:1.5;margin-top:1px;}
+    /* 選定條文：核對主體，緊排黑白 */
+    .sel-clause{font-size:11px;font-weight:800;color:#000;margin-bottom:5px;}
+    .sel-clause .txt{font-weight:400;color:#000;font-size:10px;line-height:1.4;margin-top:3px;}
+    .rblk{margin:6px 0;break-inside:avoid;}
+    .rblk h4{font-size:10.5px;font-weight:800;color:#000;margin-bottom:2px;border-bottom:1px solid #000;padding-bottom:1px;}
+    .pcode{background:none;border:none;padding:0 0 0 2px;font-size:9.5px;line-height:1.4;color:#000;}
+    .pcode b{color:#000;}
+    .notes-info{gap:1px;}
+    .notes-info li{background:none;color:#000;padding:1px 0 1px 12px;font-size:9.5px;line-height:1.35;}
+    /* 勾選清單：緊排、方框可手勾；「要備齊的資料」排兩欄省紙 */
+    .checklist{gap:1px;}
+    .checklist li{background:none!important;border:none!important;padding:1px 0;color:#000;font-size:10px;line-height:1.35;gap:6px;}
+    .checklist li .box{width:11px;height:11px;border:1.2px solid #000!important;border-radius:2px;background:none!important;color:#000!important;margin-top:1px;font-size:10px;}
+    #chk{column-count:2;column-gap:20px;}
+    #chk li{break-inside:avoid;}
+    .cc-head{font-size:9.5px;color:#000;margin:4px 0 2px;font-weight:700;}
+    .disclaim{font-size:8px;color:#444;border-top:1px solid #999;margin-top:8px;padding-top:3px;}
   }
 
 
@@ -317,6 +343,18 @@
 .pl-empty{text-align:center;color:var(--ink-3);padding:36px}
 .pl-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 17px;border-radius:var(--pill);font-size:13.5px;opacity:0;transition:.25s;z-index:1100;pointer-events:none}
 .pl-toast.on{opacity:1}
+
+/* ── 列印頁首（螢幕隱藏，僅列印顯示）＋ 列印前病人資訊彈窗 ── */
+#printHead{display:none;}
+.pr-mask{position:fixed;inset:0;background:rgba(20,40,55,.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:24px 16px}
+.pr-mask.on{display:flex}
+.pr-dlg{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh-md);width:100%;max-width:400px;padding:20px 22px}
+.pr-dlg h3{font-size:17px;margin:0 0 6px}
+.pr-note{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:0 0 14px}
+.pr-fld{display:block;font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:11px}
+.pr-fld input{display:block;width:100%;box-sizing:border-box;margin-top:4px;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;font-size:14px;font-family:inherit;color:var(--ink);outline:none}
+.pr-fld input:focus{border-color:var(--accent-l);box-shadow:0 0 0 3px var(--accent-soft)}
+.pr-dlg-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 </style>
 </head>
 <body>
@@ -324,7 +362,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.22.1</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.23.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="password" placeholder="請輸入通行碼" autocomplete="off">
@@ -341,7 +379,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.22.1">v0.22.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.23.0">v0.23.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -413,6 +451,7 @@
             <h3>送審準備</h3>
             <button class="backbtn pane-mobile-back" onclick="backToList()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m15 18-6-6 6-6"/></svg>條文清單</button>
           </div>
+          <div id="printHead"></div>
           <div id="prepBody"></div>
         </div>
       </div>
@@ -874,6 +913,40 @@ function buildDocList(){
 }
 function infoNotes(){return cur.notes.filter(n=>!NOTE_DOC_RE.test(n));}
 
+// ── 列印：先問病人資訊（可留空），再組頁首、列印，列印後清空個資 ──
+function currentTitle(){
+  const c=cur.cards[cur.picked]; if(!c)return '';
+  const t=c.kind==='scenario'?(c.short||c.label):(c.title||('適應症 '+(cur.picked+1)));
+  const u=c.use==='single'?'（單用）':c.use==='combo'?'（併用）':'';
+  return t+u;
+}
+function openPrintDlg(){
+  if(cur.picked==null)return;
+  document.getElementById('prMask').classList.add('on');
+  setTimeout(()=>document.getElementById('prName').focus(),40);
+}
+function closePrintDlg(){document.getElementById('prMask').classList.remove('on');}
+function fillPrintHead(nm,ch){
+  const d=cur.drug,blank='＿＿＿＿＿＿';
+  const today=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+  document.getElementById('printHead').innerHTML=
+    `<div class="ph-title">OncoPA 送審準備核對單 · 彰濱秀傳癌症中心</div>`+
+    `<div class="ph-row"><span><b>病人</b>：${esc(nm||blank)}</span><span><b>病歷號</b>：${esc(ch||blank)}</span><span><b>列印</b>：${esc(today)}</span></div>`+
+    `<div class="ph-row"><span><b>藥品</b>：${esc(d.name)} ${esc(d.num)}</span><span><b>癌別</b>：${esc(cur.cancer||'')}</span><span><b>${d.pre_review?'需事審'+(d.form_no?' '+esc(d.form_no):''):'免事審'}</b></span></div>`+
+    `<div class="ph-row"><span><b>適應症</b>：${esc(currentTitle())}</span></div>`;
+}
+function doPrint(){
+  const nm=(document.getElementById('prName').value||'').trim();
+  const ch=(document.getElementById('prChart').value||'').trim();
+  fillPrintHead(nm,ch);
+  closePrintDlg();
+  window.print();
+  // 隱私：列印後不保留病人個資
+  document.getElementById('prName').value='';
+  document.getElementById('prChart').value='';
+  setTimeout(()=>{const ph=document.getElementById('printHead');if(ph)ph.innerHTML='';},500);
+}
+
 function renderPrep(){
   const body=document.getElementById('prepBody');
   if(cur.picked==null){
@@ -906,7 +979,7 @@ function renderPrep(){
     h+=`</div></div>`;
   }
   h+=`<div class="btn-row">
-      <button class="btn ghost sm" onclick="window.print()">列印準備單</button>
+      <button class="btn ghost sm" onclick="openPrintDlg()">列印準備單</button>
       <button class="btn ghost sm" onclick="changeClause()">換一條</button>
       <button class="btn ghost sm" onclick="resetAll()">重新開始</button></div>`;
   h+=`<div class="disclaim">「要備齊的資料」是程式從條文關鍵字推斷的輔助提醒，<b>非健保官方要件對照</b>。最終以複製出的條文與健保署規定為準。</div>`;
@@ -1150,6 +1223,16 @@ LA26398-0 Sequencing｜LA26418-6 PCR｜LA26419-4 qPCR(real-time PCR)｜LA26404-6
     <div class="pl-cats" id="plCats"></div>
   </div>
   <div class="pl-body" id="plBody"></div>
+</div></div>
+<div class="pr-mask" id="prMask"><div class="pr-dlg">
+  <h3>列印準備單</h3>
+  <p class="pr-note">可輸入病人資訊，僅印在紙本頁首方便歸檔核對，<b>不會儲存</b>；也可留空直接列印。</p>
+  <label class="pr-fld">病人姓名<input id="prName" type="text" placeholder="（可留空）" autocomplete="off"></label>
+  <label class="pr-fld">病歷號<input id="prChart" type="text" placeholder="（可留空）" autocomplete="off"></label>
+  <div class="pr-dlg-btns">
+    <button class="btn ghost sm" onclick="closePrintDlg()">取消</button>
+    <button class="btn primary sm" onclick="doPrint()">列印</button>
+  </div>
 </div></div>
 <div class="pl-toast" id="plToast"></div>
 <script>
