@@ -1,5 +1,7 @@
 # CLAUDE.md — 癌藥事審送審準備工具
 
+> **部署（GitHub Pages）**：採自訂 workflow `.github/workflows/deploy.yml`（`concurrency: cancel-in-progress: true`，避免密集 push 互相卡死）＋根目錄 `.nojekyll`；Source 設「GitHub Actions」。此為部署設定，非 app 變更（app 仍 V0.26.0）。密集 push 後若見 `Deployment failed, try again later.`：先 Settings→Environments→github-pages 取消卡住的 deployment、Actions 取消多餘排隊 run，再 re-run。
+
 > **這份是給下次 Claude 看的工作上下文，不是文件。**
 > 維護章法：`SELA-Starter-Kit/conventions/CLAUDE-MD-章法.md`，每次升版前複習。
 > 每升一版至少更新三處：踩過的坑、版本歷程、下版候選工作。

@@ -1,0 +1,38 @@
+# OncoPA — GitHub Pages 部署（帶 concurrency，避免密集 push 互相卡死）
+# 使用前：Settings → Pages → Source 改成「GitHub Actions」
+# 預設分支若為 master，請把 main 改成 master
+name: Deploy OncoPA to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # 允許在 Actions 頁面手動觸發
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 關鍵：新的部署自動取消還在排隊的舊部署，不會堆積卡住
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'          # OncoPA 為純靜態單檔站，整個 repo 直接上傳
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

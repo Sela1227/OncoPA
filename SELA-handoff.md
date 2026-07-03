@@ -102,3 +102,10 @@ V1.19.1（c+1，新增一條通用坑 + 一條設計模式）。
 ## 七、最後備註
 
 本案是既有母程式（健保藥物速查）的衍生工具，首次套 Kit。最有價值的回流是坑 #1（`re.sub` 注入）與「衍生工具單一母來源」原則；其餘多為健保事審業務，留在專案即可。
+
+
+## 部署（GitHub Pages）
+- 已改用自訂 workflow `.github/workflows/deploy.yml`：`concurrency.group=pages`、`cancel-in-progress: true`；根目錄 `.nojekyll`；Source=「GitHub Actions」。
+- 根因：密集 push 使 Pages 部署鎖互卡 →「Deployment failed, try again later.」。cancel-in-progress 讓新部署取消排隊舊部署，根治。
+- 生效實證：deploy job 變單一（Checkout→Setup Pages→Upload artifact→Deploy），log 末出現 `Reported success!`。
+- 註：workflow 以 path:"." 上傳整個 repo，CLAUDE.md／*.py／handoff 等開發檔會一併公開；若不希望公開，改把 index.html＋favicon 放發佈子目錄、path 指該目錄。
