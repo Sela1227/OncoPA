@@ -359,6 +359,7 @@
 
 /* ── 操作精靈步驟樣式（僅啟用後使用；未啟用時無畫面影響）── */
 .wz-empty{padding:34px 20px;text-align:center;color:#8aa0ad;font-size:14px}
+.wz-draft{background:#fef3c7;border:1px solid #fcd34d;color:#92600a;border-radius:var(--r);padding:10px 13px;margin-bottom:12px;font-size:13px;line-height:1.5;font-weight:600}
 .wz-notes{background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
 .wz-notes h4{margin:0 0 6px;font-size:14px;color:#9a3412}
 .wz-notes ul,.wz-caut{margin:0;padding-left:18px}
@@ -375,7 +376,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.23.2</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.24.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="text" placeholder="請輸入通行碼" autocomplete="off">
@@ -392,7 +393,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.23.2">v0.23.2</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.24.0">v0.24.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -975,15 +976,47 @@ function doPrint(){
 // 【資料格式】
 //   WIZARD_STEPS: [{ title:'步驟標題', body:'說明（可含 \n 換行）', img:'（可選）圖片路徑', cautions:['該步注意事項…'] }, …]
 //   WIZARD_NOTES: ['整體流程注意事項…', …]   ← 顯示在最上方
-const WIZARD_ENABLED=false;
-const WIZARD_STEPS=[];   // TODO 院內事審系統操作步驟：登入 → 貼條文 → 上傳檢附資料 → 送出 → 追蹤/結案 …
-const WIZARD_NOTES=[];   // TODO 流程注意事項
+const WIZARD_ENABLED=true;   // 草稿預覽中
+const WIZARD_DRAFT=true;      // 顯示未完成橫幅
+const WIZARD_NOTES=[
+  '本精靈為草稿版：步驟順序與「事審品項／報告／送出」等分頁，待院內截圖確認後補完。',
+  '病人身分資料由 HIS 依病歷號自動帶出，請勿手動輸入。',
+  '所有藥品醫令代碼、事審碼(P碼)以院內系統實際顯示為準。',
+  '送出前務必先「檢核」通過、修正所有紅字提示。'
+];
+const WIZARD_STEPS=[
+  {title:'開新案（病人資訊左欄）',
+   body:'左上按【新增】。\n在「病歷號」輸入病歷號，系統會自動帶出身分證號、姓名、生日與性別。\n確認性別勾選正確。',
+   cautions:['病歷號輸入正確即可；身分證／姓名／生日由 HIS 自動帶出，不需手打。']},
+  {title:'選癌別（左欄下拉）',
+   body:'在左側「癌別」下拉選對應癌別。\nOncoPA 癌別 → 系統下拉對應：\n· 肝癌 → 肝癌　· 膽道癌 → 肝內膽管癌　· 胃癌 → 胃癌　· 胰臟癌 → 胰臟癌\n· 大腸直腸癌 → 結直腸癌　· 其餘依系統選項對應',
+   cautions:['系統把 GIST 獨立為「胃腸道間質瘤」；OncoPA 的 GIST 藥列在「其他癌」，選癌別時請選系統的「胃腸道間質瘤」。','頭頸／泌尿／婦在系統是拆細的（鼻咽·口腔·口咽·下咽／攝護腺·膀胱／子宮頸·卵巢·子宮體），依實際診斷選。','（完整對應表待系統癌別下拉全清單確認後補齊）']},
+  {title:'病人資訊分頁',
+   body:'申請日期今日自動帶入。\n填身高、體重、醫師、科別；女性視需要勾「已懷孕」。\n申請案件：選「一般事前審查」。\n申請類型：初次選「送核」。\n填診斷碼 1~3（ICD）與診斷日期。\n簡要病歷(申請理由)：貼上 OncoPA「複製條文」＋符合條件說明。',
+   cautions:['申請類型初次一律「送核」；被要求補件才選「送核補件」，核刪申復才選「申復」。','診斷碼填 ICD，需與所選癌別一致。']},
+  {title:'事審品項分頁　⚠️待補',
+   body:'（此分頁截圖尚未提供）在此 key-in 藥品醫令代碼、事審碼(P碼)與療程。\nOncoPA 藥名旁的醫令代碼、PD-L1／事審碼可對照填入。',
+   cautions:['此步驟待院內「事審品項」分頁截圖確認後補完。','醫令代碼以院內系統實際為準。']},
+  {title:'評估項目分頁',
+   body:'三個子表，各用左側 ＋ 新增（評估日期·評估者·評估項目·評估結果）：\n· 癌症分期：填 TNM／期別\n· 病人狀態評估：至少填 ECOG（需 ≦1）\n· 治療後疾病狀態評估：續用／療效評估時填',
+   cautions:['ECOG≦1 對應共通規定，務必填。','日期用民國制。']},
+  {title:'基因資訊分頁（需附基因報告時）',
+   body:'按左側 ＋ 新增一筆基因報告。\n用上方「🧬 病摘 AI Prompt」把基因／分子病理報告萃取成填表值，逐欄照填：\n檢測日期(民國7碼)、檢測機構、檢測方法、檢測檢體類型、基因檢測明細、分析結果、臨床判讀結果。\n附件為非必要，可不提供。',
+   cautions:['檢測日期填民國 7 碼原樣（如 1150325），勿轉西元。','只列「有結果」的基因，一基因一列；院內查無的代碼標待人工確認。']},
+  {title:'報告／檔案管理分頁　⚠️待補',
+   body:'（截圖待補）上傳病理報告、影像／分期、PD-L1 報告等檢附資料。',
+   cautions:['此步驟待「報告」「檔案管理」分頁截圖確認後補完。']},
+  {title:'送出　⚠️順序待確認',
+   body:'依序：暫存 → 檢核（修正所有紅字）→ 產生Fhir檔(儲存)。\n完成後視情況「關閉編輯」。',
+   cautions:['送出順序待你確認是否為 暫存→檢核→產生Fhir檔。','檢核未通過不要送出。']}
+];
 function wzOpen(){ if(!WIZARD_ENABLED)return; wzRender(); document.getElementById('wzMask').classList.add('on'); }
 function wzClose(){ document.getElementById('wzMask').classList.remove('on'); }
 function wzRender(){
   const b=document.getElementById('wzBody');
   if(!WIZARD_STEPS.length){ b.innerHTML='<div class="wz-empty">操作精靈內容建置中，敬請期待。</div>'; return; }
   let h='';
+  if(typeof WIZARD_DRAFT!=='undefined'&&WIZARD_DRAFT) h+=`<div class="wz-draft">⚠️ 此為未完成草稿，步驟順序與部分分頁（事審品項／報告／送出）內容待確認，僅供檢視方向。</div>`;
   if(WIZARD_NOTES.length) h+=`<div class="wz-notes"><h4>流程注意事項</h4><ul>${WIZARD_NOTES.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
   WIZARD_STEPS.forEach((s,i)=>{
     h+=`<div class="wz-step"><div class="wz-step-h"><span class="wz-num">${i+1}</span>${esc(s.title||'')}</div>`;
