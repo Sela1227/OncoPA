@@ -194,6 +194,11 @@
   .checklist{list-style:none;display:grid;gap:7px;}
   .checklist li{display:flex;gap:10px;align-items:flex-start;font-size:13px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:9px 11px;cursor:pointer;transition:.14s var(--ease);}
   .checklist li:hover{border-color:var(--accent-soft);}
+  .lc-hint{display:block;margin-top:5px;font-size:11.5px;line-height:1.55;color:var(--ink-3);}
+  .lc-code{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11.5px;color:var(--accent-d);background:var(--accent-tint);border:1px solid var(--accent-soft);border-radius:5px;padding:0 6px;margin-right:6px;cursor:copy;white-space:nowrap;}
+  .lc-code:hover{background:var(--accent-soft);}
+  .lc-tag{display:inline-block;background:#fef3c7;border:1px solid #fcd34d;color:#92600a;border-radius:5px;padding:0 6px;margin-right:6px;font-size:11px;font-weight:600;white-space:nowrap;}
+
   .checklist li .box{width:18px;height:18px;border:1.5px solid var(--ink-4);border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:.14s var(--ease);}
   .checklist li.on .box{background:var(--ok);border-color:var(--ok);}
   .checklist li.on{color:var(--ink-3);background:var(--surface);}
@@ -294,6 +299,9 @@
     .checklist{gap:1px;}
     .checklist li{background:none!important;border:none!important;padding:1px 0;color:#000;font-size:10px;line-height:1.35;gap:6px;}
     .checklist li .box{width:11px;height:11px;border:1.2px solid #000!important;border-radius:2px;background:none!important;color:#000!important;margin-top:1px;font-size:10px;}
+    .lc-hint{display:block;margin-top:1px;font-size:8.5px;line-height:1.3;color:#333;}
+    .lc-code{background:none!important;border:1px solid #000!important;color:#000!important;font-size:8.5px;padding:0 3px;margin-right:4px;}
+    .lc-tag{background:none!important;border:1px solid #666!important;color:#000!important;font-size:8px;padding:0 3px;margin-right:4px;}
     #chk{column-count:2;column-gap:20px;}
     #chk li{break-inside:avoid;}
     .cc-head{font-size:9.5px;color:#000;margin:4px 0 2px;font-weight:700;}
@@ -383,7 +391,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.28.4</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.29.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="text" placeholder="請輸入通行碼" autocomplete="off">
@@ -400,7 +408,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.28.4">v0.28.4</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.29.0">v0.29.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -553,6 +561,54 @@ function markerDocs(t){
   if(/IGHV/.test(t))out.push('IGHV 突變狀態檢測');
   if(/ANCA|嗜中性白血球細胞質抗體/.test(t))out.push('ANCA 抗體檢測（血管炎適應症）');
   return [...new Set(out)];
+}
+
+/* ── geneDocs／markerDocs 標籤 → NHOS3001 基因資訊填表對照 ───────────────
+   單一來源：本表為「要備齊的資料」自動提示與操作精靈對照表的共同依據（勿另建第二份）。
+   code＝可填入「基因檢測」欄的 LOINC；report＝不填基因資訊、直接檢附病理報告。
+   前綴比對（startsWith），較specific者須列在前。代碼皆為院內清單實查所得，未實查者不臆造。 */
+const GENE_LOINC=[
+ {p:'All-RAS 基因突變分析',code:'81420-2',note:'KRAS＋NRAS 一列涵蓋；可另加 21703-4／21720-8 記錄涵蓋範圍佐證 All-RAS'},
+ {p:'EGFR 基因突變檢測',code:'21665-5',note:'結果碼。單項另有 Exon19del 55764-5／L858R 55766-0／T790M 55769-4／Exon20ins 55770-2'},
+ {p:'MET Exon 14 跳讀突變檢測',code:'100026-4',note:'清單無 exon14 專屬碼，突變類型欄寫「MET exon 14 skipping」'},
+ {p:'BRAF 基因突變檢測',code:'58483-9',note:'targeted mutation analysis；V600E 單項可用 58415-1'},
+ {p:'ALK 基因檢測',code:'78205-2',note:'FISH 重排用此碼；組織分子法測 EML4-ALK 用 88744-8'},
+ {p:'ROS-1 基因檢測',code:'102038-7',note:'清單唯一選項；做 FISH 時檢測方法欄選 LA26404-6'},
+ {p:'NTRK 基因融合檢測',code:'93813-4',note:'NTRK1/2/3 rearrangements，清單唯一選項'},
+ {p:'FGFR2 基因融合／重排檢測',code:'95784-5',note:'★選 rearrangements，勿選點突變的 21674-7'},
+ {p:'BRCA1／2 基因突變檢測',code:'50995-0',note:'BRCA1+BRCA2 套組；單基因 21636-6／38530-2'},
+ {p:'PIK3CA／AKT1／PTEN',code:'60033-8',note:'PIK3CA 部分用此碼；AKT1／PTEN 院內清單尚未實查，請自行搜尋'},
+ {p:'PIK3CA 基因突變檢測',code:'60033-8',note:'targeted mutation analysis'},
+ {p:'PDGFRA D842V 突變檢測',code:'77170-9',note:'D842V 專屬碼；exon 18 通用為 71357-8'},
+ {p:'PDGFR 基因重組檢測',code:'55092-1',note:'此為 PDGFRA 重排碼；若報告為 PDGFRB 請自行搜尋'},
+ {p:'FLT3-ITD 突變檢測',code:'85100-6',note:'骨髓檢體；周邊血用 79210-1；需 allelic ratio 用 92844-0'},
+ {p:'FLT3 基因突變檢測',code:'85100-6',note:'依報告分選：ITD 骨髓85100-6／周邊血79210-1；TKD(D835/I836) 72520-0'},
+ {p:'BCR-ABL T315I 突變檢測',code:'55135-8',note:'kinase domain targeted mutation analysis'},
+ {p:'HER2 檢測',code:'49683-6',note:'限 FISH／ISH 結果（檢測方法選 LA26404-6）；若報告僅 IHC 則不填基因資訊，直接附病理報告'},
+ {p:'RET 基因檢測',report:'院內清單尚未實查對應代碼，請檢附檢測報告；如需填表請於系統搜尋 RET'},
+ {p:'HRD 同源重組缺陷檢測',report:'非單一基因分子項目，直接檢附檢測報告'},
+ {p:'PD-L1 表現量檢測',report:'IHC 染色，不填基因資訊，直接附病理報告'},
+ {p:'Claudin 18.2',report:'IHC 染色，不填基因資訊，直接附病理報告'},
+ {p:'MSI／MMR 檢測',report:'MMR 為 IHC、MSI 多以 PCR 判讀，先循病理報告檢附'},
+ {p:'17p 缺失檢測',report:'細胞遺傳學／FISH 報告，直接檢附'},
+ {p:'IGHV 突變狀態檢測',report:'院內清單尚未實查對應代碼，直接檢附檢測報告'},
+ {p:'ANCA 抗體檢測',report:'血清免疫學檢驗，非基因資訊'},
+ {p:'CD',report:'抗原表現（IHC／流式細胞術），不填基因資訊，直接附病理報告'},
+];
+function loincOf(line){
+  const m=String(line).match(/^(?:基因檢測|生物標記)：(.+)$/); if(!m)return null;
+  const L=m[1].trim();
+  return GENE_LOINC.find(x=>L.indexOf(x.p)===0)||null;
+}
+function loincHint(line){
+  const g=loincOf(line); if(!g)return '';
+  if(g.report)return `<span class="lc-hint lc-rep"><span class="lc-tag">附病理報告</span>${esc(g.report)}</span>`;
+  return `<span class="lc-hint"><span class="lc-code" title="點擊複製代碼" onclick="event.stopPropagation();copyLoinc(this,'${g.code}')">${g.code}</span>${esc(g.note||'')}</span>`;
+}
+function copyLoinc(el,code){
+  const done=()=>{const o=el.textContent;el.textContent='已複製';setTimeout(()=>{el.textContent=o;},900);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(done).catch(done);}
+  else{const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);done();}
 }
 
 let cur={drug:null,cancer:null,cards:[],common:[],pcode:'',notes:[],picked:null,checks:{},entry:'cancer',type:'全部',screen:'find'};
@@ -1155,7 +1211,7 @@ function renderPrep(){
   if(inf.length)h+=`<div class="rblk"><h4>注意事項</h4><ul class="notes-info">${inf.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
   const docs=buildDocList();
   h+=`<div class="rblk"><h4>要備齊的資料</h4><ul class="checklist" id="chk">${
-    docs.map((x,i)=>`<li class="${cur.checks[i]?'on':''}" onclick="toggleChk(${i})"><span class="box">${cur.checks[i]?'✓':''}</span><span>${esc(x)}</span></li>`).join('')
+    docs.map((x,i)=>`<li class="${cur.checks[i]?'on':''}" onclick="toggleChk(${i})"><span class="box">${cur.checks[i]?'✓':''}</span><span>${esc(x)}${loincHint(x)}</span></li>`).join('')
   }</ul></div>`;
   if(docs.some(x=>/基因檢測：|生物標記：/.test(x)))h+=`<div class="pl-prep-hint" onclick="plOpen()">🧬 需附基因／生物標記檢測報告？用<b>病摘 AI Prompt</b>把報告萃取成可填表的值 →</div>`;
   if(cur.commonG.length){
