@@ -376,7 +376,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.26.3</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.26.4</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="text" placeholder="請輸入通行碼" autocomplete="off">
@@ -393,7 +393,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.26.3">v0.26.3</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.26.4">v0.26.4</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -979,7 +979,7 @@ function doPrint(){
 const WIZARD_ENABLED=true;   // 草稿預覽中
 const WIZARD_DRAFT=true;      // 顯示未完成橫幅
 const WIZARD_NOTES=[
-  '本精靈：病人資訊（步驟1~5）、評估項目（步驟7~9）、基因資訊（步驟10）已依院內實機畫面完成；「事審品項／報告／檔案管理／送出」仍待截圖確認後補完。',
+  '本精靈：病人資訊（步驟1~5）、評估項目（步驟7~9）、基因資訊（步驟10~11）已依院內實機畫面完成；「事審品項／報告／檔案管理／送出」仍待截圖確認後補完。',
   '評估項目三個子表操作相同：＋ 新增、− 刪除、✏️ 修改；日期與評估者會自動帶入。',
   '系統畫面所有日期一律民國7碼（如 1150723），不要打西元。',
   '病人身分資料由 HIS 依病歷號自動帶出，請勿手動輸入。',
@@ -1015,9 +1015,12 @@ const WIZARD_STEPS=[
   {title:'評估項目分頁 ③治療後疾病狀態評估（續用時填）',
    body:'在「治療後疾病狀態評估」區按 ＋，「評估項目」只有五個選項，依藥別／癌別選對應療效評估標準：\n· REC1 → RECIST 1.1 criteria（一般實體癌）\n· IREC → i-RECIST criteria（免疫檢查點抑制劑）\n· MREC → mRECIST criteria（肝細胞癌 HCC）\n· ICLL → iwCLL（慢性淋巴球性白血病）\n· IWGC → IWG Consensus Criteria（骨髓纖維化／MDS 等血液疾病）\n「評估結果」填該次評估的療效反應，按【確認】。',
    cautions:['初次申請通常還沒有療效可評，可不填；續用（每 12 週再申請）時必填。','免疫檢查點抑制劑條文明訂：每 12 週至少評估一次，以 i-RECIST 評定；HCC 病人改用 mRECIST——選錯標準等於沒照條文評估。','評估日期要落在申請區間內，並與影像報告日期對得上。']},
-  {title:'基因資訊分頁（需附基因報告時）',
-   body:'按左側 ＋ 新增一筆基因報告。\n用上方「🧬 病摘 AI Prompt」把基因／分子病理報告萃取成填表值，逐欄照填：\n檢測日期(民國7碼)、檢測機構、檢測方法、檢測檢體類型、基因檢測明細、分析結果、臨床判讀結果。\n附件為非必要，可不提供。',
-   cautions:['檢測日期填民國 7 碼原樣（如 1150325），勿轉西元。','只列「有結果」的基因，一基因一列；院內查無的代碼標待人工確認。']},
+  {title:'基因資訊分頁 ①開新增與檢測基本欄位',
+   body:'按左側 ＋ 開啟「基因報告(新增)」。評估項目固定為 69548-6 Genetic variant assessment。\n先用上方【🧬 病摘 AI Prompt】把基因／分子病理報告萃取成可填表的值，再逐欄填：\n· 檢測日期：民國7碼（如 1150325）\n· 檢測機構：按按鈕開啟選取視窗挑代碼\n· 檢測方法：按按鈕開啟「UBrowList」選取視窗（LOINC 代碼），常用對照：\n　NGS／次世代定序、Sanger 定序 → LA26398-0 Sequencing\n　即時定量 PCR（如 cobas EGFR）→ LA26419-4 qPCR (real-time PCR)\n　一般 PCR → LA26418-6 PCR\n　FISH（ALK、ROS1、HER2）→ LA26404-6 FISH\n　染色體核型分析 → LA26406-1 Karyotyping\n　MLPA → LA26415-2　SNP array → LA26400-4\n· 檢測檢體類型：下拉選（組織／血液等）\n· 若為外院報告，勾選右上「外院報告」。',
+   cautions:['UBrowList 視窗可在「搜尋條件」打關鍵字（如 Sequencing、PCR、FISH）按【搜尋】快速篩選，不用捲清單。','真的無對應方法時才按【選取[空白]】留空，不要硬套一個不相符的代碼。','檢測日期填民國7碼原樣，勿轉西元；日期要與報告上的日期一致。','PD-L1、HER2 等免疫組織化學(IHC)染色不在此檢測方法清單中（此清單為分子檢測方法）——PD-L1 表現量報告應循「報告／檔案管理」檢附（此路徑待確認）。']},
+  {title:'基因資訊分頁 ②基因檢測明細與判讀',
+   body:'下方「基因檢測」小表按 ＋ 逐列新增：基因檢測（基因名）、基因突變類型、基因檢測結果。\n右側「基因檢測分析結果」填報告的分析結果敘述。\n「基因臨床判讀結果」兩個下拉依報告判讀選擇。\n「基因報告(附件)」為非必要資料，可不上傳。\n全部填妥按【確認】回到清單，該筆會出現在「基因資訊」表（檢測日期／檢測機構／檢測方法）。',
+   cautions:['只列「有結果」的基因，一個基因一列；報告沒驗到的不要列。','基因名與突變寫法照報告原文（如 EGFR exon 19 deletion、ALK fusion、BRAF V600E），不要自行改寫。','送審條文若指定生物標記（如 EGFR mutation、ALK+、MSI-H/dMMR、NTRK fusion、FGFR2 fusion），這裡要看得到對應結果，否則等同未附證明。','附件雖非必要，但條文要求檢附檢測報告時，仍須在「報告／檔案管理」上傳正式報告。']},
   {title:'報告／檔案管理分頁　⚠️待補',
    body:'（截圖待補）上傳病理報告、影像／分期、PD-L1 報告等檢附資料。',
    cautions:['此步驟待「報告」「檔案管理」分頁截圖確認後補完。']},
