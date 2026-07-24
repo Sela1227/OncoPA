@@ -197,6 +197,7 @@
   .lc-hint{display:block;margin-top:5px;font-size:11.5px;line-height:1.55;color:var(--ink-3);}
   .lc-code{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:11.5px;color:var(--accent-d);background:var(--accent-tint);border:1px solid var(--accent-soft);border-radius:5px;padding:0 6px;margin-right:6px;cursor:copy;white-space:nowrap;}
   .lc-code:hover{background:var(--accent-soft);}
+  .lc-mth{display:inline-block;background:#eef6fb;border:1px solid var(--accent-soft);color:var(--accent-dd);border-radius:5px;padding:0 6px;margin-right:6px;font-size:11px;white-space:nowrap;}
   .lc-tag{display:inline-block;background:#fef3c7;border:1px solid #fcd34d;color:#92600a;border-radius:5px;padding:0 6px;margin-right:6px;font-size:11px;font-weight:600;white-space:nowrap;}
 
   .checklist li .box{width:18px;height:18px;border:1.5px solid var(--ink-4);border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:.14s var(--ease);}
@@ -302,6 +303,7 @@
     .lc-hint{display:block;margin-top:1px;font-size:8.5px;line-height:1.3;color:#333;}
     .lc-code{background:none!important;border:1px solid #000!important;color:#000!important;font-size:8.5px;padding:0 3px;margin-right:4px;}
     .lc-tag{background:none!important;border:1px solid #666!important;color:#000!important;font-size:8px;padding:0 3px;margin-right:4px;}
+    .lc-mth{background:none!important;border:1px solid #666!important;color:#000!important;font-size:8px;padding:0 3px;margin-right:4px;}
     #chk{column-count:2;column-gap:20px;}
     #chk li{break-inside:avoid;}
     .cc-head{font-size:9.5px;color:#000;margin:4px 0 2px;font-weight:700;}
@@ -411,7 +413,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.30.1</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.31.0</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="text" placeholder="請輸入通行碼" autocomplete="off">
@@ -428,7 +430,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.30.1">v0.30.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.31.0">v0.31.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -584,36 +586,37 @@ function markerDocs(t){
 }
 
 /* ── geneDocs／markerDocs 標籤 → NHOS3001 基因資訊填表對照 ───────────────
-   單一來源：本表為「要備齊的資料」自動提示與操作精靈對照表的共同依據（勿另建第二份）。
-   code＝可填入「基因檢測」欄的 LOINC；report＝不填基因資訊、直接檢附病理報告。
-   前綴比對（startsWith），較specific者須列在前。代碼皆為院內清單實查所得，未實查者不臆造。 */
+   ★來源：病理科 SOP（見「病摘 AI Prompt 庫 → 分子病理 → 基因報告（新增）表單萃取」內建 Prompt）。
+   SOP 有明訂者一律以 SOP 為準；SOP 未涵蓋者才用院內查找視窗實查所得代碼。
+   修改本表時務必同步該 Prompt 之 SOP 表，勿使兩者分歧（Rule 14 單一來源）。
+   code＝基因層級 LOINC；method＝建議檢測方法碼；report＝不填基因資訊、直接檢附報告。 */
 const GENE_LOINC=[
- {p:'All-RAS 基因突變分析',code:'81420-2',note:'KRAS＋NRAS 一列涵蓋；可另加 21703-4／21720-8 記錄涵蓋範圍佐證 All-RAS'},
- {p:'EGFR 基因突變檢測',code:'21665-5',note:'結果碼。單項另有 Exon19del 55764-5／L858R 55766-0／T790M 55769-4／Exon20ins 55770-2'},
- {p:'MET Exon 14 跳讀突變檢測',code:'100026-4',note:'清單無 exon14 專屬碼，突變類型欄寫「MET exon 14 skipping」'},
- {p:'BRAF 基因突變檢測',code:'58483-9',note:'★院內確認採用；V600E 單項可用 58415-1'},
- {p:'ALK 基因檢測',code:'78205-2',note:'FISH 重排用此碼；組織分子法測 EML4-ALK 用 88744-8'},
- {p:'ROS-1 基因檢測',code:'102038-7',note:'清單唯一選項；做 FISH 時檢測方法欄選 LA26404-6'},
- {p:'NTRK 基因融合檢測',code:'93813-4',note:'NTRK1/2/3 rearrangements，清單唯一選項'},
- {p:'FGFR2 基因融合／重排檢測',code:'95784-5',note:'★選 rearrangements，勿選點突變的 21674-7'},
- {p:'BRCA1／2 基因突變檢測',code:'50995-0',note:'BRCA1+BRCA2 套組；單基因 21636-6／38530-2'},
- {p:'PIK3CA／AKT1／PTEN',code:'60033-8',note:'PIK3CA 部分用此碼；AKT1／PTEN 院內清單尚未實查，請自行搜尋'},
- {p:'PIK3CA 基因突變檢測',code:'60033-8',note:'targeted mutation analysis'},
- {p:'PDGFRA D842V 突變檢測',code:'77170-9',note:'D842V 專屬碼；exon 18 通用為 71357-8'},
- {p:'PDGFR 基因重組檢測',code:'55092-1',note:'此為 PDGFRA 重排碼；若報告為 PDGFRB 請自行搜尋'},
- {p:'FLT3-ITD 突變檢測',code:'85100-6',note:'骨髓檢體；周邊血用 79210-1；需 allelic ratio 用 92844-0'},
- {p:'FLT3 基因突變檢測',code:'85100-6',note:'依報告分選：ITD 骨髓85100-6／周邊血79210-1；TKD(D835/I836) 72520-0'},
- {p:'BCR-ABL T315I 突變檢測',code:'55135-8',note:'kinase domain targeted mutation analysis'},
- {p:'HER2 檢測',code:'49683-6',note:'限 FISH／ISH 結果（檢測方法選 LA26404-6）；若報告僅 IHC 則不填基因資訊，直接附病理報告'},
- {p:'RET 基因檢測',report:'院內清單尚未實查對應代碼，請檢附檢測報告；如需填表請於系統搜尋 RET'},
- {p:'HRD 同源重組缺陷檢測',report:'非單一基因分子項目，直接檢附檢測報告'},
- {p:'PD-L1 表現量檢測',report:'IHC 染色，不填基因資訊，直接附病理報告'},
- {p:'Claudin 18.2',report:'IHC 染色，不填基因資訊，直接附病理報告'},
- {p:'MSI／MMR 檢測',report:'MMR 為 IHC、MSI 多以 PCR 判讀，先循病理報告檢附'},
- {p:'17p 缺失檢測',report:'細胞遺傳學／FISH 報告，直接檢附'},
- {p:'IGHV 突變狀態檢測',report:'院內清單尚未實查對應代碼，直接檢附檢測報告'},
+ {p:'All-RAS 基因突變分析',code:'81420-2',method:'LA26419-4 qPCR',note:'SOP：KRAS/NRAS 合併一碼。具體變異(G12C 等)寫進「基因檢測結果」欄，勿硬找點位碼'},
+ {p:'EGFR 基因突變檢測',code:'21666-3',method:'LA26419-4 qPCR',note:'SOP 基因層級碼。若改採變異層級：Ex19del 55764-5／L858R 55766-0／T790M 55769-4／Ex20ins 55770-2（與 SOP 二擇一，由科室定）'},
+ {p:'MET Exon 14 跳讀突變檢測',code:'100026-4',method:'',note:'SOP：院內表無 exon14 專屬碼，跳讀一律歸此碼，變異細節寫結果欄。擴增另有 102039-5(NGS)／90926-7(FISH)'},
+ {p:'BRAF 基因突變檢測',code:'58483-9',method:'LA26419-4 qPCR',note:'★已確認採用。V600E 專屬 58415-1(組織)／85101-4(骨髓)；V600K 89861-9'},
+ {p:'ALK 基因檢測',code:'78205-2',method:'LP6333-1 Immune stain 或 LP6404-0 Molgen',note:'SOP：FISH 重排 78205-2／敘述型 78210-2／陽性比例 78233-4；EML4-ALK by NGS 88744-8。⚠️21787-7、21813-1、90305-4 屬 ALCL 淋巴瘤，肺癌勿用。突變類型選 95123-6 Gene fusion transcript details'},
+ {p:'ROS-1 基因檢測',code:'102038-7',method:'LA26404-6 FISH',note:'SOP：院內僅此碼。融合陽性亦填此碼，突變類型選 95123-6，融合對象(如 CD74-ROS1)寫分析結果欄'},
+ {p:'NTRK 基因融合檢測',code:'93813-4',method:'',note:'SOP 指定碼。突變類型選 95123-6 Gene fusion transcript details'},
+ {p:'FGFR2 基因融合／重排檢測',code:'95784-5',method:'LA26404-6 FISH',note:'★選 rearrangements，勿選點突變的 21674-7（SOP 未列，為查找視窗實查碼）'},
+ {p:'BRCA1／2 基因突變檢測',code:'59041-4',method:'',note:'SOP 列 BRCA 候選：21639-0(BRCA1)／38531-0(BRCA2)／59041-4(BRCA1+2)／79207-7(已知家族變異)，依報告選'},
+ {p:'PIK3CA／AKT1／PTEN',code:'60033-8',method:'',note:'PIK3CA 用此碼（SOP 未列，實查所得）；AKT1／PTEN 請於院內查找視窗確認'},
+ {p:'PIK3CA 基因突變檢測',code:'60033-8',method:'',note:'targeted mutation analysis（SOP 未列，實查所得）'},
+ {p:'PDGFRA D842V 突變檢測',code:'77170-9',method:'',note:'D842V 專屬；exon 18 通用 71357-8（SOP 未列，實查所得）'},
+ {p:'PDGFR 基因重組檢測',code:'55092-1',method:'',note:'PDGFRA 重排碼；報告若為 PDGFRB 請於查找視窗確認（SOP 未列）'},
+ {p:'FLT3-ITD 突變檢測',code:'85100-6',method:'',note:'骨髓檢體；周邊血 79210-1；allelic ratio 92844-0（SOP 未列，實查所得）'},
+ {p:'FLT3 基因突變檢測',code:'85100-6',method:'',note:'依報告分選：ITD 骨髓85100-6／周邊血79210-1；TKD(D835/I836) 72520-0'},
+ {p:'BCR-ABL T315I 突變檢測',code:'55135-8',method:'',note:'kinase domain targeted mutation analysis（SOP 未列，實查所得）'},
+ {p:'HER2 檢測',code:'49683-6',method:'LA26404-6 FISH',note:'SOP 基因層級碼。院內另列 31150-6／42783-1／74860-8／74885-5／85318-4／85328-3／96893-3，依報告項目選'},
+ {p:'PD-L1 表現量檢測',code:'83052-1',method:'LP6333-1 Immune stain',note:'SOP：PD-L1 走免疫染色仍可填基因資訊。院內另列 83054-7／85147-7／99064-8／83057-0，依判讀項目(TPS／CPS／TC／IC)選'},
+ {p:'RET 基因檢測',report:'SOP 未列且院內查找視窗未實查，請檢附檢測報告；如需填表請於系統搜尋 RET 確認'},
+ {p:'HRD 同源重組缺陷檢測',report:'非單一基因分子項目，SOP 未列，直接檢附檢測報告'},
+ {p:'Claudin 18.2',report:'SOP 未列，直接附病理報告；如需填表請於查找視窗確認'},
+ {p:'MSI／MMR 檢測',report:'SOP 未列（MMR 為 IHC、MSI 多以 PCR 判讀），先循病理報告檢附'},
+ {p:'17p 缺失檢測',report:'細胞遺傳學／FISH 報告，SOP 未列，直接檢附'},
+ {p:'IGHV 突變狀態檢測',report:'SOP 未列且未實查代碼，直接檢附檢測報告'},
  {p:'ANCA 抗體檢測',report:'血清免疫學檢驗，非基因資訊'},
- {p:'CD',report:'抗原表現（IHC／流式細胞術），不填基因資訊，直接附病理報告'},
+ {p:'CD',report:'抗原表現（IHC／流式細胞術），SOP 未列，直接附病理報告'},
 ];
 function loincOf(line){
   const m=String(line).match(/^(?:基因檢測|生物標記)：(.+)$/); if(!m)return null;
@@ -623,7 +626,8 @@ function loincOf(line){
 function loincHint(line){
   const g=loincOf(line); if(!g)return '';
   if(g.report)return `<span class="lc-hint lc-rep"><span class="lc-tag">附病理報告</span>${esc(g.report)}</span>`;
-  return `<span class="lc-hint"><span class="lc-code" title="點擊複製代碼" onclick="event.stopPropagation();copyLoinc(this,'${g.code}')">${g.code}</span>${esc(g.note||'')}</span>`;
+  const mth=g.method?`<span class="lc-mth">方法 ${esc(g.method)}</span>`:'';
+  return `<span class="lc-hint"><span class="lc-code" title="點擊複製代碼" onclick="event.stopPropagation();copyLoinc(this,'${g.code}')">${g.code}</span>${mth}${esc(g.note||'')}</span>`;
 }
 function copyLoinc(el,code){
   const done=()=>{const o=el.textContent;el.textContent='已複製';setTimeout(()=>{el.textContent=o;},900);};
@@ -1102,8 +1106,8 @@ const WIZARD_STEPS=[
    body:'在「治療後疾病狀態評估」區按 ＋，「評估項目」只有五個選項，依藥別／癌別選對應療效評估標準：\n· REC1 → RECIST 1.1 criteria（一般實體癌）\n· IREC → i-RECIST criteria（免疫檢查點抑制劑）\n· MREC → mRECIST criteria（肝細胞癌 HCC）\n· ICLL → iwCLL（慢性淋巴球性白血病）\n· IWGC → IWG Consensus Criteria（骨髓纖維化／MDS 等血液疾病）\n「評估結果」填該次評估的療效反應，按【確認】。',
    cautions:['初次申請通常還沒有療效可評，可不填；續用（每 12 週再申請）時必填。','免疫檢查點抑制劑條文明訂：每 12 週至少評估一次，以 i-RECIST 評定；HCC 病人改用 mRECIST——選錯標準等於沒照條文評估。','評估日期要落在申請區間內，並與影像報告日期對得上。']},
   {title:'基因資訊分頁 ①開新增與檢測基本欄位',
-   body:'按左側 ＋ 開啟「基因報告(新增)」。評估項目固定為 69548-6 Genetic variant assessment。\n先用上方【🧬 病摘 AI Prompt】把基因／分子病理報告萃取成可填表的值，再逐欄填：\n· 檢測日期：民國7碼（如 1150325）\n· 檢測機構：按按鈕開啟選取視窗挑代碼\n· 檢測方法：按按鈕開啟「UBrowList」選取視窗（LOINC 代碼），常用對照：\n　NGS／次世代定序、Sanger 定序 → LA26398-0 Sequencing\n　即時定量 PCR（如 cobas EGFR）→ LA26419-4 qPCR (real-time PCR)\n　一般 PCR → LA26418-6 PCR\n　FISH（ALK、ROS1、HER2）→ LA26404-6 FISH\n　染色體核型分析 → LA26406-1 Karyotyping\n　MLPA → LA26415-2　SNP array → LA26400-4\n· 檢測檢體類型：下拉選（組織／血液等）\n· 若為外院報告，勾選右上「外院報告」。',
-   cautions:['UBrowList 視窗可在「搜尋條件」打關鍵字（如 Sequencing、PCR、FISH）按【搜尋】快速篩選，不用捲清單。','真的無對應方法時才按【選取[空白]】留空，不要硬套一個不相符的代碼。','檢測日期填民國7碼原樣，勿轉西元；日期要與報告上的日期一致。','★PD-L1 不要填基因資訊：申請免疫檢查點抑制劑所需的 PD-L1 表現量（TPS／CPS／TC／IC）屬免疫組織化學(IHC)，不在此分子檢測清單中，直接檢附病理報告即可（院內實務確認）。']},
+   body:'按左側 ＋ 開啟「基因報告(新增)」。評估項目固定為 69548-6 Genetic variant assessment。\n先用上方【🧬 病摘 AI Prompt】把基因／分子病理報告萃取成可填表的值，再逐欄填：\n· 檢測日期：民國7碼（如 1150325）\n· 檢測機構：按按鈕開啟選取視窗挑代碼\n· 檢測方法：按按鈕開啟「UBrowList」選取視窗（LOINC 代碼），常用對照：\n　NGS／次世代定序、Sanger 定序 → LA26398-0 Sequencing\n　即時定量 PCR（如 cobas EGFR）→ LA26419-4 qPCR (real-time PCR)\n　一般 PCR → LA26418-6 PCR\n　FISH（ALK、ROS1、HER2）→ LA26404-6 FISH\n　染色體核型分析 → LA26406-1 Karyotyping\n　MLPA → LA26415-2　SNP array → LA26400-4\n　免疫染色(IHC，PD-L1／HER2) → LP6333-1 Immune stain\n　分子生物學法(ALK 等) → LP6404-0 Molgen\n· 檢測檢體類型：下拉選（組織／血液等）\n· 若為外院報告，勾選右上「外院報告」。',
+   cautions:['UBrowList 視窗可在「搜尋條件」打關鍵字（如 Sequencing、PCR、FISH）按【搜尋】快速篩選，不用捲清單。','真的無對應方法時才按【選取[空白]】留空，不要硬套一個不相符的代碼。','檢測日期填民國7碼原樣，勿轉西元；日期要與報告上的日期一致。','★依病理科 SOP，PD-L1、HER2 等免疫染色項目仍可填基因資訊：檢測方法選 LP6333-1 Immune stain（另有 LP6404-0 Molgen 供 ALK 分子法用），代碼見步驟12對照表。個管若僅需檢附報告，仍以病理報告為憑。']},
   {title:'基因資訊分頁 ②選「基因檢測」項目代碼（LOINC）',
    body:'在下方「基因檢測」小表按 ＋，點「基因檢測」欄開啟 UBrowList（LOINC 代碼表）。\n在「搜尋條件」打基因名（如 KRAS）按【搜尋】，會列出該基因所有代碼，靠這四欄判斷選哪一筆：\n· COMPONENT：檢測項目名稱 → 要對上報告實際做的（單一基因 vs 合併套組）\n· SCALE_TYP：Nom＝結果是「驗到哪個突變」的名稱；Ord＝陽性/陰性；Doc＝整段報告文字\n· METHOD_TYP：Molgen＝一般分子生物學方法；S…＝定序法\n· SYSTEM：Bld/Tiss＝血液或組織檢體\n\n【KRAS 實例】\n· 組織 targeted 熱點檢測、報告寫出突變位點 → 21702-6 KRAS gene targeted mutation analysis（最常用）\n· 大腸直腸癌 RAS 套組（KRAS＋NRAS 一起驗）→ 81420-2 KRAS & NRAS gene targeted mutation analysis\n· NGS 全基因定序 → 82535-6 KRAS gene full mutation analysis\n· 21703-4「mutations tested for」＝這支套組「驗了哪些位點」的涵蓋範圍，不是檢驗結果，別選錯\n· 83059-6 是 VCF 格式（NGS 原始檔用），人工填表不要選',
    cautions:['★變異型態要對，選錯等於沒證明：條文寫「融合／重排」就選 rearrangements（FGFR2→95784-5、NTRK→93813-4），不要選點突變的 21674-7。','★MET 有三種不同變異，別混用：9.101 Tepotinib 條文只要「exon 14 跳讀突變」→ 選 100026-4；MET 擴增(90926-7/102039-5)與 copy number(92906-7/92907-5)是另外的變異，條文並未採認。','★FLT3 沒有通用的「targeted mutation analysis」，必須依報告分別選 ITD 或 TKD，且檢體要對（骨髓 85100-6／周邊血 79210-1）。','★「gene mutations tested for」系列（21666-3 EGFR、21703-4 KRAS、21720-8 NRAS、21639-0 BRCA1、38531-0 BRCA2、59041-4 BRCA1+2、63419-6 PIK3CA、21675-4 FGFR2）**不是病人結果**，不可拿來填檢驗結果——結果請用對應的 targeted mutation analysis 碼。(LOINC 官方論壇 2024/11 Pam Banning 回覆確認)','但「tested for」有正當用途：它記錄套組「驗了哪些位點」，可另加一列，讓審查看得出「未偵測到突變」涵蓋到哪些範圍。院內 cobas 報告的 Detection range 即為此清單，可用以佐證條文所要求的「All-RAS」涵蓋。','★不要選 VCF 類（83059-6 KRAS、83060-4 NRAS、83061-2 BRAF、83062-0 PIK3CA）＝NGS 原始檔格式，人工填表用不到。','欄位被截斷看不清時，把 LONG_COMMON_NAME 欄拉寬再看完整名稱——COMPONENT 看起來一樣的多筆（如 21702-6 與 53620-1、21719-0 與 53621-9/85510-6、60033-8 與 85507-2），差別在檢體(Bld/Tiss、Bone marrow、Colon、Plas.cfDNA)或方法，挑與報告相符的那筆。','同一個 LOINC_NUM 出現重複列是清單資料重覆，選任一列都一樣。','搜尋不穩定：單一關鍵字（KRAS、EGFR）或含空格的片語（exon 14）可正常比對，但像「MET gene」會回傳整份清單。撈出太多時，清單依 LOINC_NUM 排序，直接找 COMPONENT 欄的目標名稱即可（如 MET gene targeted mutation analysis＝100026-4）。','清單中沒有「MET exon 14 skipping」專屬代碼——選上位的 100026-4，再把「MET exon 14 skipping mutation」寫在突變類型欄。這是通則：代碼選最貼近的上位項，精確資訊寫在突變類型/結果欄。','表中未列的基因用同一套規則搜尋挑選；代碼一律以系統顯示為準，不要憑記憶輸入。','代碼本身的 METHOD_TYP 與「檢測方法」欄可以不同：例如 ROS1 僅有 102038-7（Molgen），若實際做 FISH，仍選 102038-7，再在檢測方法欄選 LA26404-6 FISH。','找不到完全相符時，寧可選較上位的「targeted mutation analysis」，也不要選方法或檢體不符的代碼。'],
@@ -1163,7 +1167,7 @@ const WIZARD_STEPS=[
      ]}},
   {title:'基因資訊分頁 ③填突變類型、結果與判讀',
    body:'同一列續填「基因突變類型」與「基因檢測結果」。\n右側「基因檢測分析結果」填報告的分析結果敘述。\n「基因臨床判讀結果」兩個下拉依報告判讀選擇。\n「基因報告(附件)」為非必要資料，可不上傳。\n全部填妥按【確認】回到清單，該筆會出現在「基因資訊」表（檢測日期／檢測機構／檢測方法）。',
-   cautions:['只列「有結果」的基因，一個基因一列；報告沒驗到的不要列。','基因名與突變寫法照報告原文（如 EGFR exon 19 deletion、ALK fusion、BRAF V600E、KRAS G12C），不要自行改寫。','wild type／未偵測到突變也要如實填，不要空白——大腸直腸癌抗 EGFR 藥就是要證明 RAS wild type。','送審條文若指定生物標記（EGFR mutation、ALK+、MSI-H/dMMR、NTRK fusion、FGFR2 fusion 等），這裡要看得到對應結果，否則等同未附證明。']},
+   cautions:['只列「有結果」的基因，一個基因一列；報告沒驗到的不要列。','基因名與突變寫法照報告原文（如 EGFR exon 19 deletion、ALK fusion、BRAF V600E、KRAS G12C），不要自行改寫。','★融合類（ALK、ROS1、NTRK）的「基因突變類型」欄請選 95123-6 Gene fusion transcript details，並把融合對象（如 EML4-ALK、CD74-ROS1）寫進「基因檢測分析結果」欄（病理科 SOP）。','wild type／未偵測到突變也要如實填，不要空白——大腸直腸癌抗 EGFR 藥就是要證明 RAS wild type。','送審條文若指定生物標記（EGFR mutation、ALK+、MSI-H/dMMR、NTRK fusion、FGFR2 fusion 等），這裡要看得到對應結果，否則等同未附證明。']},
   {title:'基因資訊分頁 ④實例：大腸直腸癌 RAS/BRAF 報告怎麼填',
    body:'以院內分子病理常見的「KRAS/NRAS/BRAF gene mutation assay」（cobas real-time PCR、FFPE 組織）為例。\n報告結果：KRAS Exon 2 G12X 偵測到；NRAS 未偵測到；BRAF 未偵測到。\n\n【基本欄位】\n· 檢測方法 → LA26419-4 qPCR (real-time PCR)（報告寫 real-time PCR／cobas z 480）\n· 檢測檢體類型 → 組織（報告寫 FFPE 大腸組織）\n· 檢測機構 → 選本院（彰濱秀傳病理科分子病理實驗室）；院內檢測「外院報告」不要勾\n· 檢測日期 → 報告表頭的日期，民國7碼\n\n【基因檢測明細：三列都要填，不可只填有突變那列】',
    table:{cap:'填法（院內慣用：RAS 合併一列＋BRAF 一列）',
