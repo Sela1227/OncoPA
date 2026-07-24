@@ -367,12 +367,32 @@
 
 /* ── 操作精靈步驟樣式（僅啟用後使用；未啟用時無畫面影響）── */
 .wz-empty{padding:34px 20px;text-align:center;color:#8aa0ad;font-size:14px}
+/* 收合式介面 */
+#wzBody summary{cursor:pointer;list-style:none;user-select:none}
+#wzBody summary::-webkit-details-marker{display:none}
+#wzBody summary::after{content:'▸';float:right;color:var(--ink-4);font-size:12px;transition:transform .15s var(--ease);margin-left:8px}
+#wzBody details[open]>summary::after{transform:rotate(90deg)}
+.wz-bar{display:flex;align-items:center;gap:8px;margin:10px 0 12px}
+.wz-cnt{font-size:12.5px;color:var(--ink-3);margin-right:auto}
+.wz-allbtn{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--pill);padding:4px 12px;font-size:12.5px;color:var(--ink-2);cursor:pointer;font-family:inherit}
+.wz-allbtn:hover{border-color:var(--accent-soft);color:var(--accent-d)}
+.wz-step{border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;overflow:hidden;background:var(--surface)}
+.wz-step>summary{padding:11px 14px}
+.wz-step[open]>summary{border-bottom:1px solid var(--line-2);background:var(--surface-2)}
+.wz-step-in{padding:12px 14px 14px}
+.wz-sub{border:1px solid var(--line-2);border-radius:var(--r-sm);margin-top:9px;background:var(--surface-2)}
+.wz-sub>summary{padding:7px 11px;font-size:12.5px;font-weight:600;color:var(--accent-dd)}
+.wz-sub[open]>summary{border-bottom:1px solid var(--line-2)}
+.wz-sub .wz-twrap{margin:0;border:none;border-radius:0}
+.wz-sub .wz-caut{margin:8px 11px 10px}
+.wz-caut-key{margin-top:9px;background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r-sm);padding:9px 11px 9px 26px}
+.wz-notes summary{padding:9px 13px;font-size:13.5px;font-weight:700;color:#9a3412}
+.wz-notes[open] ul{margin:0;padding:0 13px 11px 30px}
 .wz-draft{background:#fef3c7;border:1px solid #fcd34d;color:#92600a;border-radius:var(--r);padding:10px 13px;margin-bottom:12px;font-size:13px;line-height:1.5;font-weight:600}
 .wz-notes{background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
-.wz-notes h4{margin:0 0 6px;font-size:14px;color:#9a3412}
 .wz-notes ul,.wz-caut{margin:0;padding-left:18px}
-.wz-step{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
-.wz-step-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--accent-dd)}
+.wz-step-h{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14.5px;color:var(--accent-dd)}
+.wz-ttl{flex:1}
 .wz-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;flex:none}
 .wz-step-b{margin-top:6px;font-size:13.5px;line-height:1.6;color:var(--ink-2)}
 .wz-step-img{max-width:100%;border:1px solid var(--line);border-radius:8px;margin-top:8px}
@@ -391,7 +411,7 @@
 <div id="gate">
   <div class="gate-card">
     <img src="favicon/app-logo.png" alt="OncoPA" width="74" height="74" style="border-radius:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(31,58,77,.28)">
-    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.29.0</span></h1>
+    <h1>OncoPA <span style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 9px;border-radius:20px;vertical-align:middle;font-family:ui-monospace,Menlo,monospace">v0.30.1</span></h1>
     <p class="sub">彰濱秀傳癌症中心 癌藥事審輔助系統</p>
     <p class="org">限院內個管師使用</p>
     <input id="pw" type="text" placeholder="請輸入通行碼" autocomplete="off">
@@ -408,7 +428,7 @@
   <div class="topbar-inner">
     <div class="logo-wrap"><img src="favicon/app-logo.png" alt="OncoPA" width="34" height="34"></div>
     <div class="brand">
-      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.29.0">v0.29.0</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
+      <div class="brand-name">OncoPA<span class="ver-badge" data-version="0.30.1">v0.30.1</span><span class="zh">彰濱秀傳癌症中心 癌藥事審輔助系統</span></div>
       <div class="brand-version" data-date="115.6.23" data-section="9">資料 115.6.23 · 健保第 9 節</div>
     </div>
     <button class="pl-launch" onclick="plOpen()" title="病摘 AI Prompt 庫">🧬 病摘 AI Prompt</button>
@@ -571,7 +591,7 @@ const GENE_LOINC=[
  {p:'All-RAS 基因突變分析',code:'81420-2',note:'KRAS＋NRAS 一列涵蓋；可另加 21703-4／21720-8 記錄涵蓋範圍佐證 All-RAS'},
  {p:'EGFR 基因突變檢測',code:'21665-5',note:'結果碼。單項另有 Exon19del 55764-5／L858R 55766-0／T790M 55769-4／Exon20ins 55770-2'},
  {p:'MET Exon 14 跳讀突變檢測',code:'100026-4',note:'清單無 exon14 專屬碼，突變類型欄寫「MET exon 14 skipping」'},
- {p:'BRAF 基因突變檢測',code:'58483-9',note:'targeted mutation analysis；V600E 單項可用 58415-1'},
+ {p:'BRAF 基因突變檢測',code:'58483-9',note:'★院內確認採用；V600E 單項可用 58415-1'},
  {p:'ALK 基因檢測',code:'78205-2',note:'FISH 重排用此碼；組織分子法測 EML4-ALK 用 88744-8'},
  {p:'ROS-1 基因檢測',code:'102038-7',note:'清單唯一選項；做 FISH 時檢測方法欄選 LA26404-6'},
  {p:'NTRK 基因融合檢測',code:'93813-4',note:'NTRK1/2/3 rearrangements，清單唯一選項'},
@@ -1104,8 +1124,7 @@ const WIZARD_STEPS=[
       ['ALK 淋巴瘤 NPM-ALK 融合','21813-1','t(2;5) · ALCL 用'],
       ['BRAF V600E（組織）','58415-1','p.Val600Glu · Tiss · Ord ★'],
       ['BRAF V600 突變（組織）','97025-1','p.Val600 mutations · Tiss · Nom'],
-      ['BRAF 一般突變分析','58483-9','targeted mutation analysis · Nom'],
-      ['BRAF（院內同仁回報使用）','104278-7','⚠️未出現在 BRAF 搜尋畫面中，使用前請先確認其 COMPONENT 內容'],
+      ['BRAF 突變檢測','58483-9','targeted mutation analysis · Nom ★院內確認採用；V600E 單項可用 58415-1'],
       ['BRAF V600K','89861-9','p.Val600Lys（黑色素瘤）'],
       ['KRAS 一般突變分析','21702-6','Nom · Bld/Tiss ★'],
       ['KRAS＋NRAS 套組（大腸直腸 RAS）','81420-2','兩基因一起驗時選這個 ★院內慣用（一列涵蓋 All-RAS）'],
@@ -1171,22 +1190,38 @@ function wzRender(){
   const b=document.getElementById('wzBody');
   if(!WIZARD_STEPS.length){ b.innerHTML='<div class="wz-empty">操作精靈內容建置中，敬請期待。</div>'; return; }
   let h='';
-  if(typeof WIZARD_DRAFT!=='undefined'&&WIZARD_DRAFT) h+=`<div class="wz-draft">⚠️ 此為未完成草稿，步驟順序與部分分頁（事審品項／報告／送出）內容待確認，僅供檢視方向。</div>`;
-  if(WIZARD_NOTES.length) h+=`<div class="wz-notes"><h4>流程注意事項</h4><ul>${WIZARD_NOTES.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
+  if(typeof WIZARD_DRAFT!=='undefined'&&WIZARD_DRAFT) h+=`<div class="wz-draft">⚠️ 內容仍在校對中（「報告／檔案管理」「送出」兩步待補），發現有誤請回報。</div>`;
+  if(WIZARD_NOTES.length){
+    h+=`<details class="wz-notes"><summary>流程注意事項（${WIZARD_NOTES.length}）</summary>`+
+       `<ul>${WIZARD_NOTES.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></details>`;
+  }
+  h+=`<div class="wz-bar"><span class="wz-cnt">共 ${WIZARD_STEPS.length} 步</span>`+
+     `<button class="wz-allbtn" onclick="wzAll(true)">全部展開</button>`+
+     `<button class="wz-allbtn" onclick="wzAll(false)">全部收合</button></div>`;
   WIZARD_STEPS.forEach((s,i)=>{
-    h+=`<div class="wz-step"><div class="wz-step-h"><span class="wz-num">${i+1}</span>${esc(s.title||'')}</div>`;
+    h+=`<details class="wz-step"><summary class="wz-step-h"><span class="wz-num">${i+1}</span><span class="wz-ttl">${esc(s.title||'')}</span></summary><div class="wz-step-in">`;
     if(s.body)h+=`<div class="wz-step-b">${esc(s.body).replace(/\n/g,'<br>')}</div>`;
     if(s.img)h+=`<img class="wz-step-img" src="${esc(s.img)}" alt="">`;
     if(s.table&&s.table.rows&&s.table.rows.length){
-      if(s.table.cap)h+=`<div class="wz-tcap">${esc(s.table.cap)}</div>`;
-      h+=`<div class="wz-twrap"><table class="wz-tbl"><thead><tr>${(s.table.head||[]).map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>`;
-      h+=s.table.rows.map(r=>`<tr>${r.map((c,ci)=>`<td${ci===1?' class="wz-code"':''}>${esc(c)}</td>`).join('')}</tr>`).join('');
-      h+=`</tbody></table></div>`;
+      h+=`<details class="wz-sub"><summary>${esc(s.table.cap||'對照表')}（${s.table.rows.length} 筆）</summary>`+
+         `<div class="wz-twrap"><table class="wz-tbl"><thead><tr>${(s.table.head||[]).map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>`+
+         s.table.rows.map(r=>`<tr>${r.map((c,ci)=>`<td${ci===1?' class="wz-code"':''}>${esc(c)}</td>`).join('')}</tr>`).join('')+
+         `</tbody></table></div></details>`;
     }
-    if(s.cautions&&s.cautions.length)h+=`<ul class="wz-caut">${s.cautions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`;
-    h+=`</div>`;
+    if(s.cautions&&s.cautions.length){
+      const star=s.cautions.filter(c=>/^★/.test(c)), rest=s.cautions.filter(c=>!/^★/.test(c));
+      if(star.length)h+=`<ul class="wz-caut wz-caut-key">${star.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`;
+      if(rest.length){
+        if(star.length||rest.length>3)h+=`<details class="wz-sub"><summary>其他注意事項（${rest.length}）</summary><ul class="wz-caut">${rest.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></details>`;
+        else h+=`<ul class="wz-caut">${rest.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`;
+      }
+    }
+    h+=`</div></details>`;
   });
   b.innerHTML=h;
+}
+function wzAll(open){
+  document.querySelectorAll('#wzBody details.wz-step').forEach(d=>{d.open=open;});
 }
 // 依旗標決定是否顯示啟動鈕（預設關閉→維持隱藏）
 (function(){ if(WIZARD_ENABLED){var el=document.getElementById('wzLaunch'); if(el)el.style.display='';} })();
@@ -1394,7 +1429,7 @@ LA26398-0 Sequencing｜LA26418-6 PCR｜LA26419-4 qPCR(real-time PCR)｜LA26404-6
 ▍★病理科 SOP：基因 → 檢測代碼 → 檢測方法（單基因常規檢測，**優先採用此對應**）
 | 基因 | 檢測代碼(基因層級) | 檢測方法 |
 | EGFR | 21666-3 | LA26419-4 qPCR |
-| BRAF | 104278-7 ⚠️ | LA26419-4 qPCR |
+| BRAF | 58483-9 | LA26419-4 qPCR |
 | KRAS / NRAS | 81420-2 | LA26419-4 qPCR |
 | HER2(ERBB2) | 49683-6 | LA26404-6 FISH |
 | ROS1 | 102038-7 | LA26404-6 FISH |
@@ -1402,7 +1437,6 @@ LA26398-0 Sequencing｜LA26418-6 PCR｜LA26419-4 qPCR(real-time PCR)｜LA26404-6
 | ALK | （見下方細表）| LP6333-1 Immune stain 或 LP6404-0 Molgen |
 ※此表為基因層級（一基因一碼）；具體變異（如 L858R）寫進「基因檢測分析結果」文字框，
 　突變類型選對應型態（Substitution 等）、檢測結果選 Present。
-※⚠️104278-7(BRAF) 在本 ODS 代碼表查無，請於院內 live 查找視窗確認後使用。
 ※若改採「變異層級代碼」（如 EGFR L858R=55766-0），見下方各基因細表（與本 SOP 二擇一，由科室定）。
 
 ▍基因 LOINC 對照（變異層級／其餘基因；肺癌試點＋常見癌別，取自健保給付規定所列代碼）
@@ -1435,8 +1469,8 @@ LA26398-0 Sequencing｜LA26418-6 PCR｜LA26419-4 qPCR(real-time PCR)｜LA26404-6
     · MET 擴增 by NGS .... 102039-5｜by FISH .... 90926-7
     · MET 拷貝數（每核）by FISH 92906-7｜MET/CEP7 比值 by FISH 92907-5
     （院內表無 exon14 專屬碼，exon14 跳脫一律歸 100026-4，變異細節寫結果欄。）
-- BRAF：58415-1 或 85101-4，兩者皆為 BRAF p.Val600Glu（V600E）。
-    ⚠️院內表僅有 V600E 碼；非 V600E 之 BRAF 變異無對應碼 → 標「⚠️待人工確認」。
+- BRAF：基因層級（未指明點位／非 V600E）→ 58483-9（targeted mutation analysis，已確認採用）。
+    · V600E 專屬：58415-1（組織）／85101-4（骨髓）  · V600K：89861-9  · V600 突變(組織)：97025-1
 - NTRK：93813-4
 - KRAS / NRAS（院內表僅基因／panel 層級，⚠️無點位專屬碼，含肺癌 G12C）：
     · KRAS targeted mutation analysis 21702-6（最常用）／53620-1／75974-6／85509-8
