@@ -45,15 +45,9 @@ def all_text_slots(d):
     return slots
 
 def complete_truncation(t,pdf):
-    """若 t 尾端為未閉合日期串，回傳補完後字串，否則原樣。
-    以「錨點＋起始日期」定位；即使 PDF 多處出現，只要補完結果唯一即採用。"""
-    m=re.search(r'[（(]([0-9/、\s]*?)$',t)
-    if not m: return t,False
-    partial=strip_ws(m.group(1))
-    if not re.search(r'\d',partial): return t,False
-    prefix=strip_ws(t[:m.start()])
-    pk=partial.rstrip('、')
-    def collect(anchor):
+    """補完 t 中所有截斷日期串（字串結尾或句中日期後接羅馬數字/文字）。
+    以「完整前綴優先、逐步退回」錨點在官方 PDF 定位；多處匹配但補完唯一即採用。"""
+    def collect(anchor,pk):
         comps=set();start=0
         while True:
             pos=pdf.find(anchor,start)
@@ -62,14 +56,23 @@ def complete_truncation(t,pdf):
             fm=re.match(r'[（(]([0-9/、]+)[）)]',pdf[pos+len(anchor):])
             if fm and fm.group(1).startswith(pk): comps.add(fm.group(1))
         return comps
-    # 完整前綴優先（最精確），再逐步退回較短錨點
-    for alen in (len(prefix),40,24):
-        anchor=prefix[-alen:]
-        if len(anchor)<8: continue
-        comps=collect(anchor)
-        if len(comps)==1:
-            return t[:m.start()]+'（'+comps.pop()+'）',True
-    return t,False
+    changed=[False]
+    # 截斷樣式：open paren + 純日期 + 頓號 + (後接非日期字元或字串結尾)
+    pat=re.compile(r'[（(]([0-9/、\s]*?、)(?=\s*(?:[^0-9/、）)\s]|$))')
+    def repl(m):
+        partial=strip_ws(m.group(1)); pk=partial.rstrip('、')
+        if not pk: return m.group(0)
+        prefix=strip_ws(t[:m.start()])
+        for alen in (len(prefix),40,24):
+            anchor=prefix[-alen:]
+            if len(anchor)<8: continue
+            comps=collect(anchor,pk)
+            if len(comps)==1:
+                changed[0]=True
+                return '（'+comps.pop()+'）'
+        return m.group(0)
+    t2=pat.sub(repl,t)
+    return t2,changed[0]
 
 def clean_spaces(t):
     """移除中文字之間的空格。"""
