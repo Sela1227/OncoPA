@@ -104,7 +104,7 @@ const DRUGS = [{"num":"9.12.2","name":"Irinotecan 微脂體注射劑","brand":"O
    逐條(per-clause)呼叫即自動分流到各適應症所需項目。 */
 function geneDocs(t){
   const out=[];
-  if(/\bEGFR\b/.test(t) && /EGFR[^。]{0,12}(?:突變|Exon|外顯子|L858R|T790M|表現型|活化|原生型|插入)|(?:Exon|外顯子)\s*\d+[^。]{0,6}(?:EGFR|突變)/i.test(t)){
+  if(/\bEGFR\b/.test(t) && /EGFR[^。]{0,12}(?:突變|Exon|外顯子|L858R|T790M|表現型|活化|原生型|插入|基因檢測|檢測報告)|(?:Exon|外顯子)\s*\d+[^。]{0,6}(?:EGFR|突變)/i.test(t)){
     const q=[];
     if(/T790M/i.test(t))q.push('T790M');
     if(/(?:Exon|外顯子)\s*20[^。]{0,10}插入|exon\s*20\s*insertion/i.test(t))q.push('Exon 20 插入');
@@ -131,7 +131,11 @@ function geneDocs(t){
 }
 function markerDocs(t){
   const out=[];
-  if(/PD-?L1|\bTPS\b|\bCPS\b|TC\s*[≧≥]|IC\s*[≧≥]/.test(t))out.push('PD-L1 表現量檢測（TPS／CPS／TC／IC）');
+  // 先剔除「免疫檢查點 PD-1、PD-L1 抑制劑」這類**藥品類別名**，否則會被誤判為
+  // 要附 PD-L1 生物標記報告（9.91 Dabrafenib／9.101 Tepotinib 條文即屬此形）。
+  // 同 #6/#12 精神：token 命中要看語境，不只看字串出現（坑 #50）。
+  const tb=String(t||'').replace(/免疫檢查點[^。]{0,24}抑制劑/g,'');
+  if(/PD-?L1|\bTPS\b|\bCPS\b|TC\s*[≧≥]|IC\s*[≧≥]/.test(tb))out.push('PD-L1 表現量檢測（TPS／CPS／TC／IC）');
   if(/HER-?2/.test(t))out.push('HER2 檢測（IHC／FISH／ISH）');
   if(/CLDN\s*18|Claudin\s*18/i.test(t))out.push('Claudin 18.2（CLDN18.2）表現檢測（IHC）');
   if(/MSI-?H|dMMR|微衛星不穩定|錯配修復|錯誤配對修復/.test(t))out.push('MSI／MMR 檢測（微衛星不穩定／錯配修復）');
